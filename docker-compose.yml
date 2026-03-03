@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: taskmaster
+      POSTGRES_PASSWORD: taskmaster
+      POSTGRES_DB: taskmaster
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskmaster"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrator:
+    build: .
+    command: ["node", "dist/index.js"]
+    environment:
+      PROCESS_ROLE: migrator
+      DATABASE_URL: postgres://taskmaster:taskmaster@postgres:5432/taskmaster
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      API_KEY: dev-api-key
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
+      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_DIMENSIONS: "1536"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PROCESS_ROLE: api
+      PORT: "3000"
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://taskmaster:taskmaster@postgres:5432/taskmaster
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      API_KEY: dev-api-key
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
+      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_DIMENSIONS: "1536"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    environment:
+      PROCESS_ROLE: worker
+      DATABASE_URL: postgres://taskmaster:taskmaster@postgres:5432/taskmaster
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      API_KEY: dev-api-key
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
+      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_DIMENSIONS: "1536"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 1
+
+volumes:
+  pgdata:
+  redisdata:

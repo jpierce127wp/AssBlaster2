@@ -1,0 +1,52 @@
+import { Worker, type Job } from 'bullmq';
+import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
+import { loadConfig } from '../kernel/config.js';
+import { getLogger } from '../kernel/logger.js';
+import { AssignmentService } from './assignment.service.js';
+import { EvidenceRepo } from '../evidence/evidence.repo.js';
+import type { CanonicalTaskId, EvidenceEventId } from '../kernel/types.js';
+
+const assignmentService = new AssignmentService();
+const evidenceRepo = new EvidenceRepo();
+
+async function processAssignment(job: Job<JobDataMap['assignment.assign']>): Promise<void> {
+  const logger = getLogger();
+  const { evidenceEventId, canonicalTaskId } = job.data;
+
+  logger.info({ canonicalTaskId, evidenceEventId, jobId: job.id }, 'Processing assignment');
+
+  const result = await assignmentService.assign(canonicalTaskId as CanonicalTaskId);
+
+  // Enqueue for sync
+  const syncQueue = getQueue(QUEUE_NAMES.SYNC_PUSH);
+  await syncQueue.add('push', { canonicalTaskId }, {
+    jobId: `sync-${canonicalTaskId}`,
+  });
+
+  logger.info({ canonicalTaskId, assignee: result.assignee_user_id, method: result.method }, 'Assignment done, queued for sync');
+}
+
+export function startAssignmentWorker(): Worker {
+  const config = loadConfig();
+  const logger = getLogger();
+
+  const worker = new Worker(
+    QUEUE_NAMES.ASSIGNMENT_ASSIGN,
+    processAssignment,
+    {
+      connection: { url: config.redisUrl },
+      concurrency: 5,
+    },
+  );
+
+  worker.on('completed', (job) => {
+    logger.info({ jobId: job?.id }, 'Assignment job completed');
+  });
+
+  worker.on('failed', (job, err) => {
+    logger.error({ jobId: job?.id, err }, 'Assignment job failed');
+  });
+
+  logger.info('Assignment worker started');
+  return worker;
+}

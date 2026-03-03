@@ -1,0 +1,31 @@
+{
+  "input": {
+    "source_type": "phone",
+    "text": "Speaker 1: Hi Sarah, I wanted to follow up on the Johnson case.\nSpeaker 2: Sure, what's going on?\nSpeaker 1: We need to file the motion to compel by March 15th. Can you handle that?\nSpeaker 2: Absolutely. I'll also need to schedule the deposition of the expert witness.\nSpeaker 1: Right, let's get that done before the end of the month. Also, please send the discovery responses to opposing counsel by next Friday.\nSpeaker 2: Got it. I'll take care of all of that."
+  },
+  "expected_spans": [
+    {
+      "signal_type": "delegation",
+      "extracted_action": "File the motion to compel",
+      "extracted_assignee_name": "Sarah",
+      "extracted_due_text": "March 15th",
+      "matter_reference": "Johnson",
+      "min_confidence": 0.8
+    },
+    {
+      "signal_type": "commitment",
+      "extracted_action": "Schedule deposition of expert witness",
+      "extracted_assignee_name": "Sarah",
+      "extracted_due_text": "before the end of the month",
+      "matter_reference": "Johnson",
+      "min_confidence": 0.7
+    },
+    {
+      "signal_type": "delegation",
+      "extracted_action": "Send discovery responses to opposing counsel",
+      "extracted_assignee_name": "Sarah",
+      "extracted_due_text": "next Friday",
+      "min_confidence": 0.7
+    }
+  ]
+}

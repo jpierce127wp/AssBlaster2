@@ -1,0 +1,53 @@
+{
+  "scenarios": [
+    {
+      "name": "exact_duplicate",
+      "task1": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "task2": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "expected_decision": "merge",
+      "expected_method": "deterministic"
+    },
+    {
+      "name": "different_actions_same_matter",
+      "task1": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "task2": {
+        "canonical_summary": "Schedule deposition of expert witness",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "deposition",
+        "due_date_window_start": "2026-03-20"
+      },
+      "expected_decision": "create_new"
+    },
+    {
+      "name": "same_action_different_matters",
+      "task1": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "task2": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Martinez v. ABC Corp",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "expected_decision": "create_new"
+    }
+  ]
+}

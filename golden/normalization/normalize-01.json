@@ -1,0 +1,25 @@
+{
+  "input": {
+    "action_spans": [
+      {
+        "text": "We need to file the motion to compel by March 15th",
+        "start_offset": 100,
+        "end_offset": 150,
+        "signal_type": "delegation",
+        "extracted_action": "file the motion to compel",
+        "extracted_object": "motion to compel",
+        "extracted_assignee_name": "Sarah",
+        "extracted_due_text": "March 15th",
+        "confidence": 0.9
+      }
+    ]
+  },
+  "expected": {
+    "canonical_summary_pattern": "(?i)file.*motion.*compel",
+    "action_type": "filing",
+    "due_date_kind": "exact",
+    "due_date_window_start": "2026-03-15",
+    "assignee_name_pattern": "(?i)sarah",
+    "priority": "high"
+  }
+}

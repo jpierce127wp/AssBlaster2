@@ -1,0 +1,29 @@
+{
+  "input": {
+    "source_type": "email",
+    "text": "Hi team,\n\nJust a reminder that the brief in support of our summary judgment motion in Martinez v. ABC Corp is due on March 20th. Michael, can you draft the statement of facts section? I'll handle the legal argument.\n\nAlso, we need to respond to the interrogatories by March 10th. Please review the client's answers and flag any issues.\n\nThanks,\nJohn"
+  },
+  "expected_spans": [
+    {
+      "signal_type": "delegation",
+      "extracted_action": "Draft the statement of facts section for summary judgment brief",
+      "extracted_assignee_name": "Michael",
+      "extracted_due_text": "March 20th",
+      "matter_reference": "Martinez v. ABC Corp",
+      "min_confidence": 0.8
+    },
+    {
+      "signal_type": "commitment",
+      "extracted_action": "Handle legal argument section of summary judgment brief",
+      "extracted_assignee_name": "John",
+      "extracted_due_text": "March 20th",
+      "min_confidence": 0.7
+    },
+    {
+      "signal_type": "deadline",
+      "extracted_action": "Respond to interrogatories",
+      "extracted_due_text": "March 10th",
+      "min_confidence": 0.7
+    }
+  ]
+}
