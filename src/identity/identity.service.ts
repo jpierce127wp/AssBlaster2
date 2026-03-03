@@ -1,8 +1,10 @@
 import { getLogger } from '../kernel/logger.js';
 import { EvidenceRepo } from '../evidence/evidence.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
+import { ReviewService } from '../review/review.service.js';
 import { IdentityRepo } from './identity.repo.js';
 import { CandidateTaskRepo } from '../normalization/normalization.repo.js';
+import { TIER_CONFIDENCE } from './identity.types.js';
 import type { IdentityResolutionResult } from './identity.types.js';
 import type { EvidenceEventId, CandidateTaskId } from '../kernel/types.js';
 
@@ -11,12 +13,15 @@ export class IdentityService {
   private evidenceRepo = new EvidenceRepo();
   private candidateTaskRepo = new CandidateTaskRepo();
   private auditRepo = new AuditRepo();
+  private reviewService = new ReviewService();
 
   async resolve(evidenceEventId: EvidenceEventId, candidateTaskIds: string[]): Promise<IdentityResolutionResult> {
     const logger = getLogger();
     const event = await this.evidenceRepo.findById(evidenceEventId);
     if (!event) throw new Error(`Evidence event not found: ${evidenceEventId}`);
 
+    const participantNames = event.participants.map((p) => p.name);
+    const contactHints = event.contact_hints ?? [];
     const resolvedIds: string[] = [];
 
     for (const ctId of candidateTaskIds) {
@@ -26,12 +31,35 @@ export class IdentityService {
       let matterId: string | null = candidateTask.matter_id;
       let assigneeUserId: string | null = candidateTask.assignee_user_id;
       let resolutionKind = candidateTask.assignee_resolution_kind;
+      let matterConfidence = 0.5;
 
-      // Resolve matter
+      // Resolve matter using 6-tier priority chain
       if (candidateTask.matter_id) {
-        const matterResult = await this.identityRepo.resolveMatter(candidateTask.matter_id);
+        const matterResult = await this.identityRepo.resolveMatter(
+          candidateTask.matter_id,
+          contactHints,
+          participantNames,
+        );
+
         if (matterResult) {
           matterId = matterResult.matterId;
+          matterConfidence = TIER_CONFIDENCE[matterResult.tier];
+          logger.info({
+            ctId,
+            matterId,
+            tier: matterResult.tier,
+            confidence: matterConfidence,
+          }, 'Matter resolved');
+        } else {
+          // Tier 6: Unresolved — route to review if matter reference exists
+          // but we could not resolve it (risk of contamination)
+          logger.warn({ ctId, reference: candidateTask.matter_id }, 'Matter resolution failed, routing to review');
+          await this.reviewService.createReviewItem({
+            candidateTaskId: ctId as CandidateTaskId,
+            reason: 'weak_identity',
+            priority: 1,
+          });
+          matterConfidence = 0;
         }
       }
 
@@ -44,12 +72,16 @@ export class IdentityService {
         }
       }
 
+      // Combine matter and assignee confidence
+      const assigneeConfidence = assigneeUserId ? 0.9 : 0.5;
+      const overallConfidence = Math.min(matterConfidence, assigneeConfidence);
+
       // Update the candidate task in-place with resolved IDs
       await this.candidateTaskRepo.updateResolution(ctId as CandidateTaskId, {
         matterId,
         assigneeUserId,
         assigneeResolutionKind: resolutionKind,
-        confidenceResolution: assigneeUserId ? 0.9 : 0.5,
+        confidenceResolution: overallConfidence,
       });
 
       resolvedIds.push(ctId);

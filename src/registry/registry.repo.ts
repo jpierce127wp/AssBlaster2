@@ -154,6 +154,47 @@ export class RegistryRepo {
     return result.rows as TaskEvidenceLink[];
   }
 
+  /**
+   * Find an open canonical task with the same matter and action type that has an assignee.
+   * Used by assignment Tier 3 (existing owner).
+   */
+  async findAssignedTaskByMatterAndAction(
+    matterId: string,
+    actionType: string,
+  ): Promise<Pick<CanonicalTask, 'assignee_user_id' | 'assignee_role'> | null> {
+    const result = await this.pool.query(
+      `SELECT assignee_user_id, assignee_role FROM canonical_tasks
+       WHERE matter_id = $1
+         AND action_type = $2
+         AND assignee_user_id IS NOT NULL
+         AND status NOT IN ('complete', 'superseded', 'discarded')
+       ORDER BY updated_at DESC
+       LIMIT 1`,
+      [matterId, actionType],
+    );
+    return (result.rows[0] as Pick<CanonicalTask, 'assignee_user_id' | 'assignee_role'>) ?? null;
+  }
+
+  /**
+   * Find the most frequent assignee for a given matter (matter owner).
+   * Used by assignment Tier 4.
+   */
+  async findMatterOwner(
+    matterId: string,
+  ): Promise<Pick<CanonicalTask, 'assignee_user_id' | 'assignee_role'> | null> {
+    const result = await this.pool.query(
+      `SELECT assignee_user_id, assignee_role, COUNT(*) as cnt
+       FROM canonical_tasks
+       WHERE matter_id = $1
+         AND assignee_user_id IS NOT NULL
+       GROUP BY assignee_user_id, assignee_role
+       ORDER BY cnt DESC
+       LIMIT 1`,
+      [matterId],
+    );
+    return (result.rows[0] as Pick<CanonicalTask, 'assignee_user_id' | 'assignee_role'>) ?? null;
+  }
+
   async findAll(pagination: PaginationParams): Promise<PaginatedResult<CanonicalTask>> {
     const [countResult, dataResult] = await Promise.all([
       this.pool.query('SELECT COUNT(*) FROM canonical_tasks'),

@@ -2,11 +2,13 @@
   "scenarios": [
     {
       "name": "exact_duplicate",
+      "description": "Same fingerprint = deterministic merge",
       "task1": {
         "canonical_summary": "File motion to compel",
         "matter_id": "Johnson v. Smith",
         "action_type": "filing",
-        "due_date_window_start": "2026-03-15"
+        "due_date_window_start": "2026-03-15",
+        "status": "active"
       },
       "task2": {
         "canonical_summary": "File motion to compel",
@@ -19,11 +21,13 @@
     },
     {
       "name": "different_actions_same_matter",
+      "description": "Different action types = distinct tasks",
       "task1": {
         "canonical_summary": "File motion to compel",
         "matter_id": "Johnson v. Smith",
         "action_type": "filing",
-        "due_date_window_start": "2026-03-15"
+        "due_date_window_start": "2026-03-15",
+        "status": "active"
       },
       "task2": {
         "canonical_summary": "Schedule deposition of expert witness",
@@ -35,11 +39,13 @@
     },
     {
       "name": "same_action_different_matters",
+      "description": "Same action but different matters = distinct tasks",
       "task1": {
         "canonical_summary": "File motion to compel",
         "matter_id": "Johnson v. Smith",
         "action_type": "filing",
-        "due_date_window_start": "2026-03-15"
+        "due_date_window_start": "2026-03-15",
+        "status": "active"
       },
       "task2": {
         "canonical_summary": "File motion to compel",
@@ -48,6 +54,100 @@
         "due_date_window_start": "2026-03-15"
       },
       "expected_decision": "create_new"
+    },
+    {
+      "name": "enrich_missing_due_date",
+      "description": "Same task, new evidence adds missing due date = enrich",
+      "task1": {
+        "canonical_summary": "Draft response to opposing counsel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "drafting",
+        "due_date_window_start": null,
+        "assignee_user_id": "user-sarah",
+        "status": "active"
+      },
+      "task2": {
+        "canonical_summary": "Draft response to opposing counsel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "drafting",
+        "due_date_window_start": "2026-03-20"
+      },
+      "expected_decision": "enrich",
+      "expected_label": "same_task_enrich"
+    },
+    {
+      "name": "followup_completed_task",
+      "description": "Same deliverable on a completed task = follow-up, not merge",
+      "task1": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15",
+        "status": "complete"
+      },
+      "task2": {
+        "canonical_summary": "File motion to compel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "expected_decision": "follow_up",
+      "note": "Reopen protection: completed task must not be auto-merged"
+    },
+    {
+      "name": "downstream_work",
+      "description": "New action that follows from a completed prior task = follow-up",
+      "task1": {
+        "canonical_summary": "Draft summary judgment brief",
+        "matter_id": "Martinez v. ABC Corp",
+        "action_type": "drafting",
+        "due_date_window_start": "2026-03-10",
+        "status": "complete"
+      },
+      "task2": {
+        "canonical_summary": "File summary judgment brief with court",
+        "matter_id": "Martinez v. ABC Corp",
+        "action_type": "filing",
+        "due_date_window_start": "2026-03-15"
+      },
+      "expected_decision": "create_new",
+      "note": "Different action type (drafting vs filing) = distinct, though related"
+    },
+    {
+      "name": "discard_low_confidence",
+      "description": "Candidate with very low combined confidence = discard",
+      "task2": {
+        "canonical_summary": "Maybe handle something",
+        "matter_id": null,
+        "action_type": "other",
+        "due_date_window_start": null,
+        "confidence_extraction": 0.55,
+        "confidence_normalization": 0.50,
+        "confidence_resolution": 0.0
+      },
+      "expected_decision": "discard",
+      "note": "Combined confidence below 0.75 threshold"
+    },
+    {
+      "name": "enrich_confirms_assignment",
+      "description": "Same task, new evidence confirms assignee = enrich",
+      "task1": {
+        "canonical_summary": "Send discovery responses to opposing counsel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "correspondence",
+        "due_date_window_start": "2026-03-22",
+        "assignee_user_id": null,
+        "status": "active"
+      },
+      "task2": {
+        "canonical_summary": "Send discovery responses to opposing counsel",
+        "matter_id": "Johnson v. Smith",
+        "action_type": "correspondence",
+        "due_date_window_start": "2026-03-22",
+        "assignee_name": "Sarah"
+      },
+      "expected_decision": "enrich",
+      "expected_label": "same_task_enrich"
     }
   ]
 }

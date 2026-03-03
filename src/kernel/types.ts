@@ -71,12 +71,17 @@ export type AssigneeResolutionKind = 'extracted' | 'resolved' | 'rule' | 'fallba
 export type SourceAuthority = 'direct' | 'inferred' | 'derived';
 
 /** Merge/dedup outcome */
-export type MergeOutcome = 'created' | 'merged' | 'review';
+export type MergeOutcome = 'created' | 'merged' | 'enriched' | 'follow_up' | 'review' | 'discarded';
+
+/** Adjudication label from dedup adjudicator */
+export type AdjudicationLabel =
+  | 'same_task_merge' | 'same_task_enrich' | 'related_followup'
+  | 'distinct' | 'needs_review';
 
 /** Review reason */
 export type ReviewReason =
   | 'low_confidence' | 'ambiguous_dedup' | 'privilege_flag'
-  | 'conflict' | 'manual';
+  | 'conflict' | 'manual' | 'weak_identity' | 'authority_conflict';
 
 /** Review status */
 export type ReviewStatus = 'open' | 'resolved' | 'dismissed';

@@ -87,3 +87,21 @@ export interface UpdateTaskInput {
   human_edited_at?: Date;
   human_edited_by?: string;
 }
+
+/** Fields that should not be overwritten by pipeline if a human has edited the task */
+export const HUMAN_SENSITIVE_FIELDS: ReadonlySet<string> = new Set([
+  'canonical_summary',
+  'assignee_user_id',
+  'assignee_role',
+  'due_date_window_start',
+  'due_date_window_end',
+  'due_date_kind',
+  'status',
+  'priority',
+]);
+
+/** Fields safe for additive pipeline updates even after human edit */
+export const HUMAN_SAFE_FIELDS: ReadonlySet<string> = new Set([
+  'open_evidence_count',
+  'last_evidence_at',
+]);

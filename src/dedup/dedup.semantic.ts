@@ -32,6 +32,7 @@ export class SemanticDedup {
       canonicalSummary: task.canonical_summary,
       similarity: task.similarity,
       method: 'semantic' as const,
+      status: task.status,
     }));
 
     return { embedding, candidates };

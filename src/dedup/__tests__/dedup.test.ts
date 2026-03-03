@@ -45,8 +45,8 @@ describe('DeterministicDedup', () => {
 describe('DEDUP_THRESHOLDS', () => {
   it('should have correct threshold ordering', () => {
     expect(DEDUP_THRESHOLDS.AUTO_MERGE).toBeGreaterThan(DEDUP_THRESHOLDS.CREATE_NEW);
-    expect(DEDUP_THRESHOLDS.AUTO_MERGE).toBe(0.92);
-    expect(DEDUP_THRESHOLDS.CREATE_NEW).toBe(0.70);
+    expect(DEDUP_THRESHOLDS.AUTO_MERGE).toBe(0.90);
+    expect(DEDUP_THRESHOLDS.CREATE_NEW).toBe(0.75);
     expect(DEDUP_THRESHOLDS.ADJUDICATION_REVIEW).toBe(0.75);
   });
 });

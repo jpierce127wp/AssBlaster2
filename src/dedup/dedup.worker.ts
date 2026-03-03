@@ -21,13 +21,20 @@ async function processDedupCheck(job: Job<JobDataMap['dedup.check']>): Promise<v
     candidateTaskId as CandidateTaskId,
   );
 
-  if (decision.action === 'review') {
-    logger.info({ evidenceEventId }, 'Dedup routed to review');
+  // Terminal states that don't need assignment
+  if (decision.action === 'review' || decision.action === 'discard') {
+    logger.info({ evidenceEventId, action: decision.action }, `Dedup ${decision.action}`);
     return;
   }
 
+  // Enrich doesn't need re-assignment (task already exists)
+  if (decision.action === 'enrich') {
+    logger.info({ canonicalTaskId, action: 'enrich' }, 'Dedup enriched existing task');
+    return;
+  }
+
+  // Create, merge, and follow_up all produce a canonical task that needs assignment
   if (canonicalTaskId) {
-    // Enqueue for assignment
     const assignQueue = getQueue(QUEUE_NAMES.ASSIGNMENT_ASSIGN);
     await assignQueue.add('assign', {
       evidenceEventId,

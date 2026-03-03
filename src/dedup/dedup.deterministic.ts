@@ -1,5 +1,9 @@
 import { RegistryRepo } from '../registry/registry.repo.js';
 import type { CanonicalTask, TaskFingerprint } from '../registry/registry.types.js';
+import type { CanonicalTaskStatus } from '../kernel/types.js';
+
+/** Statuses that should not be matched for deterministic dedup merge */
+const TERMINAL_STATUSES: Set<CanonicalTaskStatus> = new Set(['complete', 'superseded', 'discarded']);
 
 export class DeterministicDedup {
   private registryRepo = new RegistryRepo();
@@ -14,18 +18,19 @@ export class DeterministicDedup {
     };
   }
 
-  /** Check for exact match by TaskFingerprint */
+  /** Check for exact match by TaskFingerprint. Skips completed/superseded/discarded tasks. */
   async findExactMatch(
     canonicalSummary: string,
     matterId: string | null,
     actionType: string,
     dueDateWindowStart: string | null,
-  ): Promise<{ match: CanonicalTask; fingerprint: TaskFingerprint } | null> {
+  ): Promise<{ match: CanonicalTask; fingerprint: TaskFingerprint; isTerminal: boolean } | null> {
     const fingerprint = DeterministicDedup.computeFingerprint(canonicalSummary, matterId, actionType, dueDateWindowStart);
     const existing = await this.registryRepo.findByFingerprint(fingerprint);
 
     if (existing) {
-      return { match: existing, fingerprint };
+      const isTerminal = TERMINAL_STATUSES.has(existing.status);
+      return { match: existing, fingerprint, isTerminal };
     }
 
     return null;

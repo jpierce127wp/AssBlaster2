@@ -31,12 +31,19 @@ export async function registryRoutes(app: FastifyInstance): Promise<void> {
     return reply.send({ task_id: request.params.id, entries: links });
   });
 
-  /** PATCH /api/v1/tasks/:id — Update a canonical task */
+  /** PATCH /api/v1/tasks/:id — Update a canonical task (human edit) */
   app.patch('/tasks/:id', async (request: FastifyRequest<{ Params: { id: string }; Body: Record<string, unknown> }>, reply: FastifyReply) => {
     const task = await registryService.findById(request.params.id as CanonicalTaskId);
     if (!task) throw new NotFoundError('CanonicalTask', request.params.id);
 
-    const updated = await registryService.updateTask(request.params.id as CanonicalTaskId, request.body as any);
+    // Mark this as a human edit — protects these fields from future pipeline overwrites
+    const body = {
+      ...request.body,
+      human_edited_at: new Date(),
+      human_edited_by: (request.headers['x-user-id'] as string) ?? 'unknown',
+    };
+
+    const updated = await registryService.updateTask(request.params.id as CanonicalTaskId, body as any);
     return reply.send(updated);
   });
 }
