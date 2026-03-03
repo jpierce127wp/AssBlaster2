@@ -1,4 +1,5 @@
 import { getLogger } from '../kernel/logger.js';
+import { PipelineError } from '../kernel/errors.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { RegistryRepo } from '../registry/registry.repo.js';
 import type { AssignmentResult, AssignmentMethod } from './assignment.types.js';
@@ -14,7 +15,9 @@ export class AssignmentService {
   async assign(canonicalTaskId: CanonicalTaskId): Promise<AssignmentResult> {
     const logger = getLogger();
     const task = await this.registryRepo.findById(canonicalTaskId);
-    if (!task) throw new Error(`Canonical task not found: ${canonicalTaskId}`);
+    if (!task) throw new PipelineError(`Canonical task not found: ${canonicalTaskId}`, {
+      code: 'CANONICAL_TASK_NOT_FOUND', retryable: false, entityId: canonicalTaskId, stage: 'assignment',
+    });
 
     // Guard: if assignee_role is an ambiguous term, do not resolve — fall through to triage
     if (task.assignee_role && AMBIGUOUS_ASSIGNEES.has(task.assignee_role.toLowerCase().trim())) {

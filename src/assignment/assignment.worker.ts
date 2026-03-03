@@ -3,11 +3,9 @@ import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
 import { loadConfig } from '../kernel/config.js';
 import { getLogger } from '../kernel/logger.js';
 import { AssignmentService } from './assignment.service.js';
-import { EvidenceRepo } from '../evidence/evidence.repo.js';
-import type { CanonicalTaskId, EvidenceEventId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../kernel/types.js';
 
 const assignmentService = new AssignmentService();
-const evidenceRepo = new EvidenceRepo();
 
 async function processAssignment(job: Job<JobDataMap['assignment.assign']>): Promise<void> {
   const logger = getLogger();
@@ -17,9 +15,13 @@ async function processAssignment(job: Job<JobDataMap['assignment.assign']>): Pro
 
   const result = await assignmentService.assign(canonicalTaskId as CanonicalTaskId);
 
-  // Enqueue for sync
+  // Enqueue for sync with event contract
   const syncQueue = getQueue(QUEUE_NAMES.SYNC_PUSH);
-  await syncQueue.add('push', { canonicalTaskId }, {
+  await syncQueue.add('push', {
+    eventType: 'canonical_task.changed',
+    schemaVersion: 1,
+    canonicalTaskId,
+  }, {
     jobId: `sync-${canonicalTaskId}`,
   });
 

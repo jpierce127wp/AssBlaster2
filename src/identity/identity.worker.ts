@@ -3,13 +3,22 @@ import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
 import { loadConfig } from '../kernel/config.js';
 import { getLogger } from '../kernel/logger.js';
 import { IdentityService } from './identity.service.js';
+import { EvidenceRepo } from '../evidence/evidence.repo.js';
 import type { EvidenceEventId } from '../kernel/types.js';
 
 const identityService = new IdentityService();
+const evidenceRepo = new EvidenceRepo();
 
 async function processIdentityResolve(job: Job<JobDataMap['identity.resolve']>): Promise<void> {
   const logger = getLogger();
   const { evidenceEventId, candidateTaskIds } = job.data;
+
+  // Idempotency guard: skip if already past resolution stage
+  const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
+  if (currentState && currentState !== 'normalized') {
+    logger.info({ evidenceEventId, currentState }, 'Evidence already past resolution stage, skipping');
+    return;
+  }
 
   logger.info({ evidenceEventId, jobId: job.id, taskCount: candidateTaskIds.length }, 'Processing identity resolution');
 
@@ -18,11 +27,13 @@ async function processIdentityResolve(job: Job<JobDataMap['identity.resolve']>):
     candidateTaskIds,
   );
 
-  // Enqueue each resolved candidate task for dedup individually
+  // Enqueue each resolved candidate task for dedup individually with event contract
   const dedupQueue = getQueue(QUEUE_NAMES.DEDUP_CHECK);
   for (let i = 0; i < result.resolvedCandidateTaskIds.length; i++) {
     const candidateTaskId = result.resolvedCandidateTaskIds[i]!;
     await dedupQueue.add('check', {
+      eventType: 'candidate_task.resolved',
+      schemaVersion: 1,
       evidenceEventId,
       candidateTaskId,
     }, {

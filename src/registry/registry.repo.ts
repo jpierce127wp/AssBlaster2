@@ -211,4 +211,25 @@ export class RegistryRepo {
       offset: pagination.offset,
     };
   }
+
+  async findOpen(pagination: PaginationParams): Promise<PaginatedResult<CanonicalTask>> {
+    const [countResult, dataResult] = await Promise.all([
+      this.pool.query(
+        `SELECT COUNT(*) FROM canonical_tasks WHERE status NOT IN ('complete', 'superseded', 'discarded')`,
+      ),
+      this.pool.query(
+        `SELECT * FROM canonical_tasks
+         WHERE status NOT IN ('complete', 'superseded', 'discarded')
+         ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+        [pagination.limit, pagination.offset],
+      ),
+    ]);
+
+    return {
+      items: dataResult.rows as CanonicalTask[],
+      total: parseInt(countResult.rows[0].count, 10),
+      limit: pagination.limit,
+      offset: pagination.offset,
+    };
+  }
 }

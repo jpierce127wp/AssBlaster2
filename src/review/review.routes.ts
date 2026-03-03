@@ -37,4 +37,26 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
     const item = await reviewService.decide(request.params.id, parsed.data);
     return reply.send(item);
   });
+
+  // --- Spec-aligned alias routes ---
+
+  /** GET /api/v1/review-items/open — Alias for GET /reviews */
+  app.get('/review-items/open', async (request: FastifyRequest<{ Querystring: { limit?: string; offset?: string } }>, reply: FastifyReply) => {
+    const limit = Math.min(parseInt(request.query.limit || '20', 10), 100);
+    const offset = parseInt(request.query.offset || '0', 10);
+
+    const result = await reviewService.getOpen({ limit, offset });
+    return reply.send(result);
+  });
+
+  /** POST /api/v1/review-items/:id/resolve — Alias for POST /reviews/:id/decide */
+  app.post('/review-items/:id/resolve', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const parsed = decisionSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new ValidationError('Invalid decision', parsed.error.flatten());
+    }
+
+    const item = await reviewService.decide(request.params.id, parsed.data);
+    return reply.send(item);
+  });
 }

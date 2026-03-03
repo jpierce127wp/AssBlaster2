@@ -4,6 +4,8 @@ import { getLogger } from './kernel/logger.js';
 import { evidenceRoutes } from './evidence/evidence.routes.js';
 import { registryRoutes } from './registry/registry.routes.js';
 import { reviewRoutes } from './review/review.routes.js';
+import { normalizationRoutes } from './normalization/normalization.routes.js';
+import { syncRoutes } from './sync/sync.routes.js';
 import { healthRoutes } from './observability/health.routes.js';
 import { replayRoutes } from './observability/replay.routes.js';
 
@@ -16,6 +18,8 @@ export async function startServer(): Promise<void> {
   await app.register(evidenceRoutes, { prefix: '/api/v1' });
   await app.register(registryRoutes, { prefix: '/api/v1' });
   await app.register(reviewRoutes, { prefix: '/api/v1' });
+  await app.register(normalizationRoutes, { prefix: '/api/v1' });
+  await app.register(syncRoutes, { prefix: '/api/v1' });
   await app.register(healthRoutes, { prefix: '/api/v1' });
   await app.register(replayRoutes, { prefix: '/api/v1' });
 

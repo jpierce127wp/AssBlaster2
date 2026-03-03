@@ -4,7 +4,9 @@ import { RegistryRepo } from '../registry/registry.repo.js';
 import { SyncRepo } from './sync.repo.js';
 import { SyncReconciler } from './sync.reconciler.js';
 import { ClioClient } from './clio/clio.client.js';
+import { mapPriority, mapStatus } from './clio/clio.field-map.js';
 import type { SyncResult } from './sync.types.js';
+import { PipelineError } from '../kernel/errors.js';
 import type { CanonicalTaskId } from '../kernel/types.js';
 
 export class SyncService {
@@ -17,7 +19,9 @@ export class SyncService {
   async syncToClio(canonicalTaskId: CanonicalTaskId): Promise<SyncResult> {
     const logger = getLogger();
     const task = await this.registryRepo.findById(canonicalTaskId);
-    if (!task) throw new Error(`Canonical task not found: ${canonicalTaskId}`);
+    if (!task) throw new PipelineError(`Canonical task not found: ${canonicalTaskId}`, {
+      code: 'CANONICAL_TASK_NOT_FOUND', retryable: false, entityId: canonicalTaskId, stage: 'sync',
+    });
 
     const link = await this.syncRepo.findByTaskId(canonicalTaskId);
     const currentHash = SyncReconciler.computeSyncHash(task);
@@ -27,9 +31,9 @@ export class SyncService {
       data: {
         name: task.canonical_summary,
         description: task.desired_outcome ?? undefined,
-        priority: this.mapPriority(task.priority),
+        priority: mapPriority(task.priority),
         due_at: task.due_date_window_start ?? undefined,
-        status: this.mapStatus(task.status),
+        status: mapStatus(task.status),
         ...(task.assignee_user_id ? { assignee: { id: parseInt(task.assignee_user_id, 10) } } : {}),
       },
     };
@@ -107,26 +111,4 @@ export class SyncService {
     }
   }
 
-  private mapPriority(priority: string): string {
-    const map: Record<string, string> = {
-      critical: 'High',
-      high: 'High',
-      normal: 'Normal',
-      low: 'Low',
-    };
-    return map[priority] ?? 'Normal';
-  }
-
-  private mapStatus(status: string): string {
-    const map: Record<string, string> = {
-      proposed: 'Pending',
-      active: 'In Progress',
-      blocked: 'Pending',
-      review_pending: 'Pending',
-      complete: 'Complete',
-      superseded: 'Complete',
-      discarded: 'Complete',
-    };
-    return map[status] ?? 'Pending';
-  }
 }

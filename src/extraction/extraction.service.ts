@@ -6,6 +6,7 @@ import { AuditRepo } from '../observability/audit.repo.js';
 import { ActionSpanRepo } from './extraction.repo.js';
 import { EXTRACTION_SYSTEM_PROMPT, EXTRACTION_TOOL_DEFINITION } from './extraction.prompt.js';
 import { actionSpanSchema, MIN_EXTRACTION_CONFIDENCE, type ActionSpan, type ExtractionResult } from './extraction.types.js';
+import { PipelineError } from '../kernel/errors.js';
 import type { EvidenceEventId } from '../kernel/types.js';
 
 export class ExtractionService {
@@ -25,7 +26,9 @@ export class ExtractionService {
 
     // Get the evidence event
     const event = await this.evidenceRepo.findById(evidenceEventId);
-    if (!event) throw new Error(`Evidence event not found: ${evidenceEventId}`);
+    if (!event) throw new PipelineError(`Evidence event not found: ${evidenceEventId}`, {
+      code: 'EVIDENCE_NOT_FOUND', retryable: false, entityId: evidenceEventId, stage: 'extraction',
+    });
 
     const text = event.cleaned_text ?? event.raw_text;
 

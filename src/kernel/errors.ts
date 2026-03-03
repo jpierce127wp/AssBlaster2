@@ -53,3 +53,29 @@ export class AuthenticationError extends DomainError {
     this.name = 'AuthenticationError';
   }
 }
+
+export class PipelineError extends DomainError {
+  public readonly retryable: boolean;
+  public readonly entityId: string;
+  public readonly stage: string;
+  public readonly metadata: Record<string, unknown>;
+
+  constructor(
+    message: string,
+    options: {
+      code?: string;
+      retryable?: boolean;
+      entityId: string;
+      stage: string;
+      metadata?: Record<string, unknown>;
+      statusCode?: number;
+    },
+  ) {
+    super(message, options.code ?? 'PIPELINE_ERROR', options.statusCode ?? 500);
+    this.name = 'PipelineError';
+    this.retryable = options.retryable ?? false;
+    this.entityId = options.entityId;
+    this.stage = options.stage;
+    this.metadata = options.metadata ?? {};
+  }
+}

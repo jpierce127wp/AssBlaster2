@@ -2,6 +2,7 @@ import { EvidenceRepo } from './evidence.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { getQueue, QUEUE_NAMES } from '../kernel/queue.js';
 import { getLogger } from '../kernel/logger.js';
+import { PipelineError } from '../kernel/errors.js';
 import type { IngestRequest, EvidenceEvent, CleanedEvidence } from './evidence.types.js';
 import type { EvidenceEventId, PaginationParams, PaginatedResult } from '../kernel/types.js';
 import type { SourceAdapter } from './adapters/adapter.interface.js';
@@ -37,9 +38,13 @@ export class EvidenceService {
       metadata: { source_type: request.source_type, idempotency_key: request.idempotency_key },
     });
 
-    // Enqueue for processing
+    // Enqueue for processing with event contract
     const queue = getQueue(QUEUE_NAMES.EVIDENCE_INGEST);
-    await queue.add('ingest', { evidenceEventId: id }, {
+    await queue.add('ingest', {
+      eventType: 'evidence.received',
+      schemaVersion: 1,
+      evidenceEventId: id,
+    }, {
       jobId: `ingest-${id}`,
     });
 
@@ -49,10 +54,15 @@ export class EvidenceService {
 
   async cleanEvidence(evidenceEventId: EvidenceEventId): Promise<CleanedEvidence> {
     const event = await this.repo.findById(evidenceEventId);
-    if (!event) throw new Error(`Evidence event not found: ${evidenceEventId}`);
+    if (!event) throw new PipelineError(`Evidence event not found: ${evidenceEventId}`, {
+      code: 'EVIDENCE_NOT_FOUND', retryable: false, entityId: evidenceEventId, stage: 'evidence',
+    });
 
     const adapter = this.adapters[event.source_type];
-    if (!adapter) throw new Error(`No adapter for source type: ${event.source_type}`);
+    if (!adapter) throw new PipelineError(`No adapter for source type: ${event.source_type}`, {
+      code: 'ADAPTER_NOT_FOUND', retryable: false, entityId: evidenceEventId, stage: 'evidence',
+      metadata: { sourceType: event.source_type },
+    });
 
     const cleaned = adapter.clean(event.raw_text, event.source_metadata);
 

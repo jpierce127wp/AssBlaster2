@@ -48,4 +48,39 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
     const result = await evidenceService.findAll({ limit, offset });
     return reply.send(result);
   });
+
+  // --- Alias routes per spec naming convention ---
+
+  /** POST /api/v1/evidence-events — Alias for POST /evidence */
+  app.post('/evidence-events', async (request: FastifyRequest, reply: FastifyReply) => {
+    const parsed = ingestRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new ValidationError('Invalid ingest request', parsed.error.flatten());
+    }
+
+    const result = await evidenceService.ingest(parsed.data);
+
+    if (!result.isNew) {
+      return reply.status(200).send({
+        id: result.id,
+        status: 'duplicate',
+        message: 'Evidence with this idempotency key already exists',
+      });
+    }
+
+    return reply.status(201).send({
+      id: result.id,
+      status: 'accepted',
+      message: 'Evidence accepted for processing',
+    });
+  });
+
+  /** GET /api/v1/evidence-events/:id — Alias for GET /evidence/:id */
+  app.get('/evidence-events/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const event = await evidenceService.findById(request.params.id as EvidenceEventId);
+    if (!event) {
+      throw new NotFoundError('EvidenceEvent', request.params.id);
+    }
+    return reply.send(event);
+  });
 }

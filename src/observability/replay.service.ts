@@ -20,9 +20,13 @@ export class ReplayService {
     // Reset state to received
     await this.evidenceRepo.updateState(evidenceEventId, 'received');
 
-    // Re-enqueue for processing
+    // Re-enqueue for processing with event contract
     const queue = getQueue(QUEUE_NAMES.EVIDENCE_INGEST);
-    await queue.add('replay', { evidenceEventId }, {
+    await queue.add('replay', {
+      eventType: 'evidence.received' as const,
+      schemaVersion: 1 as const,
+      evidenceEventId,
+    }, {
       jobId: `replay-${evidenceEventId}-${Date.now()}`,
     });
 

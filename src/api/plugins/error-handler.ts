@@ -1,10 +1,25 @@
 import type { FastifyInstance } from 'fastify';
-import { DomainError } from '../../kernel/errors.js';
+import { DomainError, PipelineError } from '../../kernel/errors.js';
 import { getLogger } from '../../kernel/logger.js';
 
 export async function errorHandlerPlugin(app: FastifyInstance): Promise<void> {
   app.setErrorHandler((error, request, reply) => {
     const logger = getLogger();
+
+    if (error instanceof PipelineError) {
+      logger.warn(
+        { code: error.code, statusCode: error.statusCode, stage: error.stage, entityId: error.entityId, path: request.url },
+        error.message,
+      );
+      return reply.status(error.statusCode).send({
+        error: error.code,
+        message: error.message,
+        retryable: error.retryable,
+        entityId: error.entityId,
+        stage: error.stage,
+        metadata: error.metadata,
+      });
+    }
 
     if (error instanceof DomainError) {
       logger.warn(

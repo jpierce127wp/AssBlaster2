@@ -1,6 +1,14 @@
 import { Queue } from 'bullmq';
 import { loadConfig } from './config.js';
 import { getLogger } from './logger.js';
+import type {
+  EvidenceReceived,
+  ActionSpansExtracted,
+  CandidateTasksNormalized,
+  CandidateTaskResolved,
+  CandidateTaskDecided,
+  CanonicalTaskChanged,
+} from './events.js';
 
 /** All queue names in the pipeline */
 export const QUEUE_NAMES = {
@@ -15,15 +23,15 @@ export const QUEUE_NAMES = {
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
-/** Job data types for each queue */
+/** Job data types for each queue — uses pipeline event contracts */
 export interface JobDataMap {
-  'evidence.ingest': { evidenceEventId: string };
-  'extraction.extract': { evidenceEventId: string };
-  'normalization.normalize': { evidenceEventId: string; actionSpanIds: string[] };
-  'identity.resolve': { evidenceEventId: string; candidateTaskIds: string[] };
-  'dedup.check': { evidenceEventId: string; candidateTaskId: string };
-  'assignment.assign': { evidenceEventId: string; canonicalTaskId: string };
-  'sync.push': { canonicalTaskId: string };
+  'evidence.ingest': EvidenceReceived;
+  'extraction.extract': EvidenceReceived;
+  'normalization.normalize': ActionSpansExtracted;
+  'identity.resolve': CandidateTasksNormalized;
+  'dedup.check': CandidateTaskResolved;
+  'assignment.assign': CandidateTaskDecided;
+  'sync.push': CanonicalTaskChanged;
 }
 
 const _queues = new Map<string, Queue>();

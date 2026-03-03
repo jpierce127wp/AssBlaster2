@@ -10,6 +10,8 @@ import { SemanticDedup } from './dedup.semantic.js';
 import { DedupAdjudicator } from './dedup.adjudicator.js';
 import { resolveDueDateConflict, resolveAssignmentConflict } from './dedup.conflicts.js';
 import { DEDUP_THRESHOLDS, type DedupDecision } from './dedup.types.js';
+import { PipelineError } from '../kernel/errors.js';
+import { withMatterLock } from '../kernel/lock.js';
 import type { CandidateTaskRow } from '../normalization/normalization.types.js';
 import type { CanonicalTaskId, CandidateTaskId, EvidenceEventId, SourceAuthority } from '../kernel/types.js';
 
@@ -34,7 +36,22 @@ export class DedupService {
     const logger = getLogger();
 
     const candidateTask = await this.candidateTaskRepo.findById(candidateTaskId);
-    if (!candidateTask) throw new Error(`Candidate task not found: ${candidateTaskId}`);
+    if (!candidateTask) throw new PipelineError(`Candidate task not found: ${candidateTaskId}`, {
+      code: 'CANDIDATE_TASK_NOT_FOUND', retryable: false, entityId: candidateTaskId, stage: 'dedup',
+    });
+
+    // Wrap registry mutations in a matter-scoped lock
+    return withMatterLock(candidateTask.matter_id, () =>
+      this.checkAndProcessInner(evidenceEventId, candidateTaskId, candidateTask),
+    );
+  }
+
+  private async checkAndProcessInner(
+    evidenceEventId: EvidenceEventId,
+    candidateTaskId: CandidateTaskId,
+    candidateTask: CandidateTaskRow,
+  ): Promise<{ decision: DedupDecision; canonicalTaskId: CanonicalTaskId | null }> {
+    const logger = getLogger();
 
     // Pre-check: discard if combined confidence is too low
     const combinedConfidence = Math.min(

@@ -37,6 +37,8 @@ async function processDedupCheck(job: Job<JobDataMap['dedup.check']>): Promise<v
   if (canonicalTaskId) {
     const assignQueue = getQueue(QUEUE_NAMES.ASSIGNMENT_ASSIGN);
     await assignQueue.add('assign', {
+      eventType: 'candidate_task.decided',
+      schemaVersion: 1,
       evidenceEventId,
       canonicalTaskId,
     }, {

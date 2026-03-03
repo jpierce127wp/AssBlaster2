@@ -3,13 +3,22 @@ import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
 import { loadConfig } from '../kernel/config.js';
 import { getLogger } from '../kernel/logger.js';
 import { ExtractionService } from './extraction.service.js';
+import { EvidenceRepo } from '../evidence/evidence.repo.js';
 import type { EvidenceEventId } from '../kernel/types.js';
 
 const extractionService = new ExtractionService();
+const evidenceRepo = new EvidenceRepo();
 
 async function processExtraction(job: Job<JobDataMap['extraction.extract']>): Promise<void> {
   const logger = getLogger();
   const { evidenceEventId } = job.data;
+
+  // Idempotency guard: skip if already past extraction stage
+  const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
+  if (currentState && currentState !== 'received') {
+    logger.info({ evidenceEventId, currentState }, 'Evidence already past extraction stage, skipping');
+    return;
+  }
 
   logger.info({ evidenceEventId, jobId: job.id }, 'Processing extraction');
 
@@ -20,9 +29,11 @@ async function processExtraction(job: Job<JobDataMap['extraction.extract']>): Pr
     return;
   }
 
-  // Enqueue for normalization with action span IDs
+  // Enqueue for normalization with event contract
   const normQueue = getQueue(QUEUE_NAMES.NORMALIZATION_NORMALIZE);
   await normQueue.add('normalize', {
+    eventType: 'action_spans.extracted',
+    schemaVersion: 1,
     evidenceEventId,
     actionSpanIds: result.actionSpanIds,
   }, {

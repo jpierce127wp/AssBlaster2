@@ -6,6 +6,7 @@ import { IdentityRepo } from './identity.repo.js';
 import { CandidateTaskRepo } from '../normalization/normalization.repo.js';
 import { TIER_CONFIDENCE } from './identity.types.js';
 import type { IdentityResolutionResult } from './identity.types.js';
+import { PipelineError } from '../kernel/errors.js';
 import type { EvidenceEventId, CandidateTaskId } from '../kernel/types.js';
 
 export class IdentityService {
@@ -18,7 +19,9 @@ export class IdentityService {
   async resolve(evidenceEventId: EvidenceEventId, candidateTaskIds: string[]): Promise<IdentityResolutionResult> {
     const logger = getLogger();
     const event = await this.evidenceRepo.findById(evidenceEventId);
-    if (!event) throw new Error(`Evidence event not found: ${evidenceEventId}`);
+    if (!event) throw new PipelineError(`Evidence event not found: ${evidenceEventId}`, {
+      code: 'EVIDENCE_NOT_FOUND', retryable: false, entityId: evidenceEventId, stage: 'resolution',
+    });
 
     const participantNames = event.participants.map((p) => p.name);
     const contactHints = event.contact_hints ?? [];

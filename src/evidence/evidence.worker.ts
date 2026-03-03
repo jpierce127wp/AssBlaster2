@@ -3,22 +3,35 @@ import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
 import { loadConfig } from '../kernel/config.js';
 import { getLogger } from '../kernel/logger.js';
 import { EvidenceService } from './evidence.service.js';
+import { EvidenceRepo } from './evidence.repo.js';
 import type { EvidenceEventId } from '../kernel/types.js';
 
 const evidenceService = new EvidenceService();
+const evidenceRepo = new EvidenceRepo();
 
 async function processIngest(job: Job<JobDataMap['evidence.ingest']>): Promise<void> {
   const logger = getLogger();
   const { evidenceEventId } = job.data;
+
+  // Idempotency guard: skip if already past ingest stage
+  const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
+  if (currentState && currentState !== 'received') {
+    logger.info({ evidenceEventId, currentState }, 'Evidence already past ingest stage, skipping');
+    return;
+  }
 
   logger.info({ evidenceEventId, jobId: job.id }, 'Processing evidence ingest');
 
   // Step 1: Clean the evidence
   await evidenceService.cleanEvidence(evidenceEventId as EvidenceEventId);
 
-  // Step 2: Enqueue for extraction
+  // Step 2: Enqueue for extraction with event contract
   const extractionQueue = getQueue(QUEUE_NAMES.EXTRACTION_EXTRACT);
-  await extractionQueue.add('extract', { evidenceEventId }, {
+  await extractionQueue.add('extract', {
+    eventType: 'evidence.received',
+    schemaVersion: 1,
+    evidenceEventId,
+  }, {
     jobId: `extract-${evidenceEventId}`,
   });
 

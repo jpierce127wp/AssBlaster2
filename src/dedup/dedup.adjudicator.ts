@@ -1,8 +1,11 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { loadConfig } from '../kernel/config.js';
 import { getLogger } from '../kernel/logger.js';
+import type { DuplicateAdjudicator } from '../kernel/interfaces.js';
 import type { DedupCandidate } from './dedup.types.js';
 import { DEDUP_THRESHOLDS } from './dedup.types.js';
+import type { CandidateTaskRow } from '../normalization/normalization.types.js';
+import type { CanonicalTask } from '../registry/registry.types.js';
 import type { CanonicalTaskId, AdjudicationLabel } from '../kernel/types.js';
 
 export interface AdjudicationResult {
@@ -12,7 +15,7 @@ export interface AdjudicationResult {
   reasoning: string;
 }
 
-export class DedupAdjudicator {
+export class DedupAdjudicator implements DuplicateAdjudicator {
   private client: Anthropic;
 
   constructor() {
@@ -150,5 +153,36 @@ Respond with a JSON object:
       logger.warn({ err, text: textBlock.text }, 'Failed to parse adjudication response');
       return { decision: 'needs_review', confidence: 0, reasoning: 'Failed to parse adjudicator response' };
     }
+  }
+
+  /** DuplicateAdjudicator interface — delegates to adjudicate() */
+  async classify(input: {
+    candidateTask: CandidateTaskRow;
+    canonicalTask: CanonicalTask;
+    supportingEvidence: string[];
+  }): Promise<{
+    label: AdjudicationLabel;
+    rationale: string;
+    confidence: number;
+  }> {
+    const candidate: DedupCandidate = {
+      taskId: input.canonicalTask.id,
+      canonicalSummary: input.canonicalTask.canonical_summary,
+      similarity: 0,
+      method: 'adjudication',
+      status: input.canonicalTask.status,
+    };
+
+    const result = await this.adjudicate(
+      input.candidateTask.canonical_summary,
+      input.candidateTask.target_object,
+      [candidate],
+    );
+
+    return {
+      label: result.decision,
+      rationale: result.reasoning,
+      confidence: result.confidence,
+    };
   }
 }

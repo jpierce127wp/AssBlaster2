@@ -1,6 +1,8 @@
 import { RegistryRepo } from './registry.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { getLogger } from '../kernel/logger.js';
+import { PipelineError } from '../kernel/errors.js';
+import { withMatterLock } from '../kernel/lock.js';
 import type { CanonicalTask, CreateTaskInput, UpdateTaskInput } from './registry.types.js';
 import { HUMAN_SENSITIVE_FIELDS } from './registry.types.js';
 import type { CanonicalTaskId, PaginationParams, PaginatedResult } from '../kernel/types.js';
@@ -10,30 +12,32 @@ export class RegistryService {
   private auditRepo = new AuditRepo();
 
   async createTask(input: CreateTaskInput, evidenceEventId: string, actionSpanId: string | null): Promise<CanonicalTask> {
-    const logger = getLogger();
-    const task = await this.repo.create(input);
+    return withMatterLock(input.matterId ?? null, async () => {
+      const logger = getLogger();
+      const task = await this.repo.create(input);
 
-    // Add initial task evidence link
-    await this.repo.addTaskEvidenceLink({
-      canonicalTaskId: task.id,
-      evidenceEventId,
-      actionSpanId,
-      relationType: 'supporting',
-      changeImpact: 'major',
-      impactedFields: ['canonical_summary', 'action_type', 'priority'],
-      rationale: 'Initial task creation',
+      // Add initial task evidence link
+      await this.repo.addTaskEvidenceLink({
+        canonicalTaskId: task.id,
+        evidenceEventId,
+        actionSpanId,
+        relationType: 'supporting',
+        changeImpact: 'major',
+        impactedFields: ['canonical_summary', 'action_type', 'priority'],
+        rationale: 'Initial task creation',
+      });
+
+      await this.auditRepo.log({
+        entityType: 'canonical_task',
+        entityId: task.id,
+        action: 'created',
+        summary: `Task created: ${task.canonical_summary}`,
+        metadata: { priority: task.priority, action_type: task.action_type },
+      });
+
+      logger.info({ taskId: task.id, summary: task.canonical_summary }, 'Canonical task created');
+      return task;
     });
-
-    await this.auditRepo.log({
-      entityType: 'canonical_task',
-      entityId: task.id,
-      action: 'created',
-      summary: `Task created: ${task.canonical_summary}`,
-      metadata: { priority: task.priority, action_type: task.action_type },
-    });
-
-    logger.info({ taskId: task.id, summary: task.canonical_summary }, 'Canonical task created');
-    return task;
   }
 
   async updateTask(id: CanonicalTaskId, input: UpdateTaskInput): Promise<CanonicalTask> {
@@ -71,9 +75,33 @@ export class RegistryService {
     evidenceEventId: string,
     actionSpanId: string | null,
   ): Promise<{ enrichedFields: string[] }> {
-    const logger = getLogger();
     const task = await this.repo.findById(taskId);
-    if (!task) throw new Error(`Canonical task not found: ${taskId}`);
+    if (!task) throw new PipelineError(`Canonical task not found: ${taskId}`, {
+      code: 'CANONICAL_TASK_NOT_FOUND', retryable: false, entityId: taskId, stage: 'registry',
+    });
+
+    return withMatterLock(task.matter_id, () =>
+      this.enrichTaskInner(taskId, task, candidateData, evidenceEventId, actionSpanId),
+    );
+  }
+
+  private async enrichTaskInner(
+    taskId: CanonicalTaskId,
+    task: CanonicalTask,
+    candidateData: {
+      targetObject?: string | null;
+      desiredOutcome?: string | null;
+      assigneeUserId?: string | null;
+      assigneeRole?: string | null;
+      dueDateKind?: string | null;
+      dueDateWindowStart?: string | null;
+      dueDateWindowEnd?: string | null;
+      priority?: string;
+    },
+    evidenceEventId: string,
+    actionSpanId: string | null,
+  ): Promise<{ enrichedFields: string[] }> {
+    const logger = getLogger();
 
     const isHumanEdited = task.human_edited_at !== null;
     const updates: Record<string, unknown> = {};

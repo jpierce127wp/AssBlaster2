@@ -64,6 +64,25 @@ export class EvidenceRepo {
     );
   }
 
+  async hasReachedTerminalState(idempotencyKey: string): Promise<boolean> {
+    const result = await this.pool.query(
+      `SELECT processing_state FROM evidence_events WHERE idempotency_key = $1`,
+      [idempotencyKey],
+    );
+    if (!result.rows[0]) return false;
+    const state = result.rows[0].processing_state as ProcessingState;
+    return state === 'decided' || state === 'failed';
+  }
+
+  async getState(id: EvidenceEventId): Promise<ProcessingState | null> {
+    const result = await this.pool.query(
+      'SELECT processing_state FROM evidence_events WHERE id = $1',
+      [id],
+    );
+    if (!result.rows[0]) return null;
+    return result.rows[0].processing_state as ProcessingState;
+  }
+
   async findAll(pagination: PaginationParams): Promise<PaginatedResult<EvidenceEvent>> {
     const [countResult, dataResult] = await Promise.all([
       this.pool.query('SELECT COUNT(*) FROM evidence_events'),
