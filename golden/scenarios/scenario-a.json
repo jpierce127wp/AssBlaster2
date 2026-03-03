@@ -1,0 +1,66 @@
+{
+  "name": "Scenario A: Same task across phone/email/meeting → 1 canonical task, 3 evidence links",
+  "description": "Three evidence events from different sources all describe the same task: 'File motion to compel in Johnson matter by 2026-03-15'. Fingerprints match exactly, producing one canonical task with three evidence links.",
+  "evidence_events": [
+    {
+      "id": "ev-a-001",
+      "source_type": "phone",
+      "raw_text": "We need to file the motion to compel in the Johnson matter by March 15.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    },
+    {
+      "id": "ev-a-002",
+      "source_type": "email",
+      "raw_text": "Please file the motion to compel in Johnson v. Smith by 3/15/2026.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    },
+    {
+      "id": "ev-a-003",
+      "source_type": "meeting",
+      "raw_text": "Action item: File motion to compel, Johnson matter, deadline March 15.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }, { "name": "Paralegal Smith", "role": "paralegal" }]
+    }
+  ],
+  "candidate_tasks": [
+    {
+      "canonical_summary": "File motion to compel in Johnson matter",
+      "matter_id": "matter-johnson-001",
+      "action_type": "filing",
+      "due_date_window_start": "2026-03-15",
+      "priority": "high",
+      "source_authority": "direct",
+      "confidence_extraction": 0.95,
+      "confidence_normalization": 0.92
+    },
+    {
+      "canonical_summary": "File motion to compel in Johnson matter",
+      "matter_id": "matter-johnson-001",
+      "action_type": "filing",
+      "due_date_window_start": "2026-03-15",
+      "priority": "high",
+      "source_authority": "direct",
+      "confidence_extraction": 0.93,
+      "confidence_normalization": 0.90
+    },
+    {
+      "canonical_summary": "File motion to compel in Johnson matter",
+      "matter_id": "matter-johnson-001",
+      "action_type": "filing",
+      "due_date_window_start": "2026-03-15",
+      "priority": "high",
+      "source_authority": "direct",
+      "confidence_extraction": 0.91,
+      "confidence_normalization": 0.88
+    }
+  ],
+  "expected": {
+    "canonical_task_count": 1,
+    "evidence_link_count": 3,
+    "fingerprints_match": true,
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "action_type": "filing"
+  }
+}

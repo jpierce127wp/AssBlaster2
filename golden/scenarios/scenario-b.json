@@ -1,0 +1,47 @@
+{
+  "name": "Scenario B: Related but distinct tasks → 2 canonical tasks (different action_type)",
+  "description": "Two evidence events in the same matter but for different action types: 'filing' vs 'deposition'. They should produce distinct canonical tasks despite the same matter.",
+  "evidence_events": [
+    {
+      "id": "ev-b-001",
+      "source_type": "email",
+      "raw_text": "File the motion to compel in the Johnson matter by March 15.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    },
+    {
+      "id": "ev-b-002",
+      "source_type": "phone",
+      "raw_text": "Schedule the deposition of the expert witness in the Johnson matter for late March.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    }
+  ],
+  "candidate_tasks": [
+    {
+      "canonical_summary": "File motion to compel in Johnson matter",
+      "matter_id": "matter-johnson-001",
+      "action_type": "filing",
+      "due_date_window_start": "2026-03-15",
+      "priority": "high",
+      "source_authority": "direct",
+      "confidence_extraction": 0.94,
+      "confidence_normalization": 0.91
+    },
+    {
+      "canonical_summary": "Schedule expert witness deposition in Johnson matter",
+      "matter_id": "matter-johnson-001",
+      "action_type": "deposition",
+      "due_date_window_start": "2026-03-25",
+      "priority": "normal",
+      "source_authority": "direct",
+      "confidence_extraction": 0.90,
+      "confidence_normalization": 0.87
+    }
+  ],
+  "expected": {
+    "canonical_task_count": 2,
+    "fingerprints_match": false,
+    "action_types": ["filing", "deposition"]
+  }
+}

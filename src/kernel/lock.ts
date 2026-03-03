@@ -13,7 +13,7 @@ const DEFAULT_TTL_MS = 30_000;
 const RETRY_DELAY_MS = 50;
 const MAX_RETRIES = 20;
 
-function lockKey(matterId: string): string {
+export function lockKey(matterId: string): string {
   return `lock:matter:${matterId}`;
 }
 

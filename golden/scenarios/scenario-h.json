@@ -1,0 +1,35 @@
+{
+  "name": "Scenario H: Assignment conflict → review (two direct-authority, different users)",
+  "description": "An existing canonical task is assigned to user-jones-001 via direct authority. A new candidate assigns to user-smith-002, also with direct authority. Since both are high-authority and disagree, the conflict routes to review.",
+  "existing_canonical_task": {
+    "id": "can-h-001",
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "assignee_user_id": "user-jones-001",
+    "assignee_role": "Lead Attorney",
+    "status": "active",
+    "matter_id": "matter-johnson-001"
+  },
+  "candidate_task": {
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "assignee_user_id": "user-smith-002",
+    "assignee_role": "Associate Attorney",
+    "source_authority": "direct",
+    "confidence_extraction": 0.90,
+    "confidence_normalization": 0.88
+  },
+  "conflict_resolution": {
+    "existing": {
+      "userId": "user-jones-001",
+      "authority": "direct"
+    },
+    "candidate": {
+      "userId": "user-smith-002",
+      "authority": "direct"
+    }
+  },
+  "expected": {
+    "outcome": "review",
+    "reason_contains": "both authoritative",
+    "review_reason": "authority_conflict"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Scenario E: Human edit protection → sensitive fields unchanged",
+  "description": "A canonical task has been human-edited (human_edited_at is set). When the pipeline attempts to enrich it, sensitive fields must remain unchanged while safe fields can update.",
+  "existing_canonical_task": {
+    "id": "can-e-001",
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "status": "active",
+    "priority": "critical",
+    "assignee_user_id": "user-jones-001",
+    "assignee_role": "Lead Attorney",
+    "due_date_window_start": "2026-03-20",
+    "due_date_window_end": null,
+    "due_date_kind": "exact",
+    "matter_id": "matter-johnson-001",
+    "human_edited_at": "2026-03-02T14:00:00Z",
+    "human_edited_by": "user-jones-001",
+    "open_evidence_count": 2,
+    "last_evidence_at": "2026-03-02T10:00:00Z"
+  },
+  "enrichment_attempt": {
+    "canonical_summary": "File the motion to compel discovery responses in the Johnson case",
+    "assignee_user_id": "user-smith-002",
+    "assignee_role": "Associate Attorney",
+    "priority": "normal",
+    "due_date_window_start": "2026-03-15",
+    "due_date_kind": "window"
+  },
+  "expected": {
+    "sensitive_fields_unchanged": true,
+    "protected_fields": [
+      "canonical_summary",
+      "assignee_user_id",
+      "assignee_role",
+      "due_date_window_start",
+      "due_date_window_end",
+      "due_date_kind",
+      "status",
+      "priority"
+    ],
+    "safe_fields_can_update": ["open_evidence_count", "last_evidence_at"]
+  }
+}

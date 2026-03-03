@@ -1,0 +1,30 @@
+{
+  "name": "Scenario D: Ambiguous matter → review queue (tier 6 confidence)",
+  "description": "Identity resolution cannot resolve the matter. Tier 6 gives confidence 0.0, which routes the candidate to the review queue rather than proceeding through dedup.",
+  "evidence_event": {
+    "id": "ev-d-001",
+    "source_type": "phone",
+    "raw_text": "Someone mentioned we need to file something by end of month but I'm not sure which case.",
+    "matter_hints": [],
+    "participants": [{ "name": "Unknown Caller", "role": "unknown" }]
+  },
+  "candidate_task": {
+    "canonical_summary": "File unspecified document by end of month",
+    "matter_id": null,
+    "action_type": "filing",
+    "due_date_window_start": "2026-03-31",
+    "priority": "normal",
+    "source_authority": "derived",
+    "confidence_extraction": 0.60,
+    "confidence_normalization": 0.55
+  },
+  "identity_resolution": {
+    "tier": 6,
+    "confidence": 0.0
+  },
+  "expected": {
+    "routes_to_review": true,
+    "review_reason": "weak_identity",
+    "tier_confidence": 0.0
+  }
+}

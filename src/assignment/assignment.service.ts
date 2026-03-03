@@ -6,7 +6,7 @@ import type { AssignmentResult, AssignmentMethod } from './assignment.types.js';
 import type { CanonicalTaskId } from '../kernel/types.js';
 
 /** Ambiguous assignee tokens that should not be resolved to a person */
-const AMBIGUOUS_ASSIGNEES = new Set(['we', 'someone', 'somebody', 'the team', 'us', 'anyone']);
+export const AMBIGUOUS_ASSIGNEES = new Set(['we', 'someone', 'somebody', 'the team', 'us', 'anyone']);
 
 export class AssignmentService {
   private registryRepo = new RegistryRepo();

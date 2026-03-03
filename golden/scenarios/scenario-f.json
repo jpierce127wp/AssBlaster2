@@ -1,0 +1,30 @@
+{
+  "name": "Scenario F: Noisy transcript → zero candidates",
+  "description": "A phone transcript is mostly noise/social chat with no actionable task content. Extraction produces spans below MIN_EXTRACTION_CONFIDENCE (0.5), resulting in zero candidates.",
+  "evidence_event": {
+    "id": "ev-f-001",
+    "source_type": "phone",
+    "raw_text": "Hey how are you doing? Great weather today. Yeah, we should grab lunch sometime. Okay talk to you later, bye.",
+    "matter_hints": [],
+    "participants": [{ "name": "John", "role": "unknown" }, { "name": "Jane", "role": "unknown" }]
+  },
+  "extracted_spans": [
+    {
+      "text": "we should grab lunch sometime",
+      "signal_type": "task",
+      "confidence": 0.15,
+      "extracted_action": "grab lunch"
+    },
+    {
+      "text": "talk to you later",
+      "signal_type": "follow_up",
+      "confidence": 0.10,
+      "extracted_action": "follow up"
+    }
+  ],
+  "expected": {
+    "min_extraction_confidence": 0.5,
+    "spans_above_threshold": 0,
+    "candidate_task_count": 0
+  }
+}

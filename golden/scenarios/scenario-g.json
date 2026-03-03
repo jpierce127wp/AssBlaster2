@@ -1,0 +1,27 @@
+{
+  "name": "Scenario G: Duplicate evidence → idempotent (same idempotency_key)",
+  "description": "Two evidence ingestion requests arrive with the same idempotency_key. The second should be rejected, ensuring idempotent processing.",
+  "evidence_events": [
+    {
+      "id": "ev-g-001",
+      "idempotency_key": "idem-phone-2026-03-01-jones-001",
+      "source_type": "phone",
+      "raw_text": "File the motion to compel in Johnson by March 15.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    },
+    {
+      "id": "ev-g-002",
+      "idempotency_key": "idem-phone-2026-03-01-jones-001",
+      "source_type": "phone",
+      "raw_text": "File the motion to compel in Johnson by March 15.",
+      "matter_hints": ["Johnson"],
+      "participants": [{ "name": "Attorney Jones", "role": "attorney" }]
+    }
+  ],
+  "expected": {
+    "idempotency_keys_match": true,
+    "second_request_rejected": true,
+    "evidence_event_count": 1
+  }
+}

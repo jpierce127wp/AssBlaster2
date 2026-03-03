@@ -1,0 +1,28 @@
+{
+  "name": "Scenario C: Completed task + new request → follow-up (not reopen)",
+  "description": "An existing canonical task is marked 'complete'. A new candidate matches its fingerprint exactly. Instead of reopening, the system creates a follow-up task.",
+  "existing_canonical_task": {
+    "id": "can-c-001",
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "status": "complete",
+    "action_type": "filing",
+    "matter_id": "matter-johnson-001",
+    "due_date_window_start": "2026-03-15"
+  },
+  "candidate_task": {
+    "canonical_summary": "File motion to compel in Johnson matter",
+    "matter_id": "matter-johnson-001",
+    "action_type": "filing",
+    "due_date_window_start": "2026-03-15",
+    "priority": "high",
+    "source_authority": "direct",
+    "confidence_extraction": 0.92,
+    "confidence_normalization": 0.90
+  },
+  "expected": {
+    "decision": "follow_up",
+    "reopen": false,
+    "creates_new_task": true,
+    "related_task_id": "can-c-001"
+  }
+}
