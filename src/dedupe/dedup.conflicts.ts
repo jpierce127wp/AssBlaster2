@@ -1,27 +1,5 @@
 import type { SourceAuthority } from '../domain/types.js';
-
-/**
- * Authority trust order for conflict resolution (highest to lowest):
- * 1. explicit attorney instruction
- * 2. explicit client instruction
- * 3. written email/document with exact date
- * 4. meeting statement with explicit date
- * 5. inferred timeline
- * 6. vague follow-up language
- *
- * We map SourceAuthority to a numeric rank:
- * - 'direct' → authority comes from explicit instruction (rank 1-3)
- * - 'inferred' → reasonably deduced (rank 4-5)
- * - 'derived' → combined from multiple signals (rank 5-6)
- */
-function authorityRank(authority: SourceAuthority | null): number {
-  switch (authority) {
-    case 'direct': return 1;
-    case 'inferred': return 3;
-    case 'derived': return 5;
-    default: return 6;
-  }
-}
+import { AUTHORITY_RANK } from '../domain/policy.js';
 
 export type ConflictResolution<T> =
   | { outcome: 'winner'; value: T; reason: string }
@@ -47,8 +25,8 @@ export function resolveDueDateConflict(
   }
 
   // Compare by authority
-  const existingRank = authorityRank(existing.authority);
-  const candidateRank = authorityRank(candidate.authority);
+  const existingRank = AUTHORITY_RANK[existing.authority ?? 'unknown'];
+  const candidateRank = AUTHORITY_RANK[candidate.authority ?? 'unknown'];
 
   if (candidateRank < existingRank) {
     return { outcome: 'winner', value: candidate.value, reason: `Candidate has higher authority (${candidate.authority} vs ${existing.authority})` };
@@ -85,8 +63,8 @@ export function resolveAssignmentConflict(
   }
 
   // Compare by authority
-  const existingRank = authorityRank(existing.authority);
-  const candidateRank = authorityRank(candidate.authority);
+  const existingRank = AUTHORITY_RANK[existing.authority ?? 'unknown'];
+  const candidateRank = AUTHORITY_RANK[candidate.authority ?? 'unknown'];
 
   if (candidateRank < existingRank) {
     return { outcome: 'winner', value: candidate.userId, reason: `Candidate has higher authority for assignment` };

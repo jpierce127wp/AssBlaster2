@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AMBIGUOUS_ASSIGNEES } from '../../src/assignment/assignment.service.js';
+import { AMBIGUOUS_ASSIGNEES } from '../../src/domain/policy.js';
 
 describe('AMBIGUOUS_ASSIGNEES', () => {
   it('should contain "we"', () => {

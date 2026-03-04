@@ -11,12 +11,10 @@ import { DedupAdjudicator } from './dedup.adjudicator.js';
 import { resolveDueDateConflict, resolveAssignmentConflict } from './dedup.conflicts.js';
 import { DEDUP_THRESHOLDS, type DedupDecision } from './dedup.types.js';
 import { PipelineError } from '../domain/errors.js';
+import { TERMINAL_STATUSES } from '../domain/policy.js';
 import { withMatterLock } from '../registry/locking.js';
 import type { CandidateTaskRow } from '../normalization/normalization.types.js';
 import type { CanonicalTaskId, CandidateTaskId, EvidenceEventId, SourceAuthority } from '../domain/types.js';
-
-/** Statuses where we should NOT auto-merge (reopen protection) */
-const COMPLETED_STATUSES = new Set(['complete', 'superseded', 'discarded']);
 
 export class DedupService {
   private deterministic = new DeterministicDedup();
@@ -141,7 +139,7 @@ export class DedupService {
       // Auto-merge if similarity above threshold AND task is not completed
       if (topCandidate.similarity >= DEDUP_THRESHOLDS.AUTO_MERGE) {
         // Reopen protection
-        if (COMPLETED_STATUSES.has(topCandidate.status)) {
+        if (TERMINAL_STATUSES.has(topCandidate.status)) {
           logger.info({ taskId: topCandidate.taskId, status: topCandidate.status }, 'Semantic auto-merge blocked by completed status, creating follow-up');
           return this.createFollowUp(candidateTask, evidenceEventId, candidateTaskId, topCandidate.taskId);
         }
@@ -192,7 +190,7 @@ export class DedupService {
 
           // Reopen protection
           const targetCandidate = candidates.find((c) => c.taskId === adjResult.targetTaskId);
-          if (targetCandidate && COMPLETED_STATUSES.has(targetCandidate.status)) {
+          if (targetCandidate && TERMINAL_STATUSES.has(targetCandidate.status)) {
             logger.info({ taskId: adjResult.targetTaskId }, 'Adjudicator merge blocked by completed status, creating follow-up');
             return this.createFollowUp(candidateTask, evidenceEventId, candidateTaskId, adjResult.targetTaskId);
           }
