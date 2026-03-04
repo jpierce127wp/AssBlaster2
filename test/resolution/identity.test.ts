@@ -69,3 +69,33 @@ describe('MATTER_CONFIDENCE_MIN (D4)', () => {
     expect(TIER_CONFIDENCE[3]).toBeGreaterThan(MATTER_CONFIDENCE_MIN);
   });
 });
+
+describe('assigneeConfidence three-way logic', () => {
+  // Mirrors the logic in identity.service.ts:
+  // no assignee_name → 1.0, resolved → 0.9, failed → 0.3
+  function computeAssigneeConfidence(assigneeName: string | null, assigneeUserId: string | null): number {
+    return !assigneeName ? 1.0 : assigneeUserId ? 0.9 : 0.3;
+  }
+
+  it('should return 1.0 when no assignee_name exists (legitimately unassigned)', () => {
+    expect(computeAssigneeConfidence(null, null)).toBe(1.0);
+  });
+
+  it('should return 0.9 when assignee was successfully resolved', () => {
+    expect(computeAssigneeConfidence('John Doe', 'user-123')).toBe(0.9);
+  });
+
+  it('should return 0.3 when assignee_name exists but resolution failed', () => {
+    expect(computeAssigneeConfidence('Unknown Person', null)).toBe(0.3);
+  });
+
+  it('unassigned task (1.0) should not be penalized below SENSITIVE_FIELD_MIN_CONFIDENCE (0.80)', () => {
+    const confidence = computeAssigneeConfidence(null, null);
+    expect(confidence).toBeGreaterThanOrEqual(0.80);
+  });
+
+  it('failed resolution (0.3) should fall below ADJUDICATION_REVIEW threshold (0.75)', () => {
+    const confidence = computeAssigneeConfidence('Unknown', null);
+    expect(confidence).toBeLessThan(0.75);
+  });
+});

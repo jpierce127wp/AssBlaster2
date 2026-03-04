@@ -42,4 +42,23 @@ describe('Policy constants', () => {
       expect(MATTER_CONFIDENCE_MIN).toBe(0.75);
     });
   });
+
+  describe('assignee confidence values vs policy thresholds', () => {
+    // These values correspond to the three-way logic in identity.service.ts
+    const ASSIGNEE_NO_NAME = 1.0;
+    const ASSIGNEE_RESOLVED = 0.9;
+    const ASSIGNEE_FAILED = 0.3;
+
+    it('no-name confidence (1.0) exceeds SENSITIVE_FIELD_MIN_CONFIDENCE', () => {
+      expect(ASSIGNEE_NO_NAME).toBeGreaterThanOrEqual(SENSITIVE_FIELD_MIN_CONFIDENCE);
+    });
+
+    it('resolved confidence (0.9) exceeds SENSITIVE_FIELD_MIN_CONFIDENCE', () => {
+      expect(ASSIGNEE_RESOLVED).toBeGreaterThanOrEqual(SENSITIVE_FIELD_MIN_CONFIDENCE);
+    });
+
+    it('failed confidence (0.3) falls below MATTER_CONFIDENCE_MIN', () => {
+      expect(ASSIGNEE_FAILED).toBeLessThan(MATTER_CONFIDENCE_MIN);
+    });
+  });
 });

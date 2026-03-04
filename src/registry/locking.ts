@@ -8,6 +8,7 @@
 import { randomUUID } from 'node:crypto';
 import { getRedis } from '../lib/infra/redis.js';
 import { getLogger } from '../observability/logger.js';
+import { PipelineError } from '../domain/errors.js';
 
 const DEFAULT_TTL_MS = 30_000;
 const RETRY_DELAY_MS = 50;
@@ -67,8 +68,10 @@ export async function withMatterLock<T>(
   }
 
   if (!lockId) {
-    logger.warn({ matterId }, 'Failed to acquire matter lock after retries, proceeding without lock');
-    return fn();
+    throw new PipelineError(
+      `Failed to acquire matter lock for ${matterId} after ${MAX_RETRIES} retries`,
+      { code: 'LOCK_TIMEOUT', retryable: true, entityId: matterId, stage: 'locking' },
+    );
   }
 
   try {

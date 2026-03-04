@@ -24,7 +24,8 @@ export class SyncRepo {
     await this.pool.query(
       `INSERT INTO clio_task_links (canonical_task_id, clio_task_id, remote_version_token, last_synced_at, sync_status)
        VALUES ($1, $2, $3, NOW(), 'synced')
-       ON CONFLICT (clio_task_id) DO UPDATE SET
+       ON CONFLICT (canonical_task_id) DO UPDATE SET
+         clio_task_id = EXCLUDED.clio_task_id,
          remote_version_token = EXCLUDED.remote_version_token,
          last_synced_at = NOW(),
          sync_status = 'synced',

@@ -22,8 +22,13 @@ async function processIngest(job: Job<JobDataMap['evidence.ingest']>): Promise<v
 
   logger.info({ evidenceEventId, jobId: job.id }, 'Processing evidence ingest');
 
-  // Step 1: Clean the evidence
-  await evidenceService.cleanEvidence(evidenceEventId as EvidenceEventId);
+  // Step 1: Clean the evidence (skip if already cleaned on retry)
+  const event = await evidenceRepo.findById(evidenceEventId as EvidenceEventId);
+  if (event?.cleaned_text) {
+    logger.info({ evidenceEventId }, 'Evidence already cleaned, skipping to extraction enqueue');
+  } else {
+    await evidenceService.cleanEvidence(evidenceEventId as EvidenceEventId);
+  }
 
   // Step 2: Enqueue for extraction with event contract
   const extractionQueue = getQueue(QUEUE_NAMES.EXTRACTION_EXTRACT);

@@ -88,7 +88,11 @@ export class IdentityService {
       }
 
       // Combine matter and assignee confidence
-      const assigneeConfidence = assigneeUserId ? 0.9 : 0.5;
+      const assigneeConfidence = !candidateTask.assignee_name
+        ? 1.0
+        : assigneeUserId
+          ? 0.9
+          : 0.3;
       const overallConfidence = Math.min(matterConfidence, assigneeConfidence);
 
       // Update the candidate task in-place with resolved IDs
