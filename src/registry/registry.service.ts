@@ -1,11 +1,11 @@
 import { RegistryRepo } from './registry.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
-import { getLogger } from '../kernel/logger.js';
-import { PipelineError } from '../kernel/errors.js';
-import { withMatterLock } from '../kernel/lock.js';
+import { getLogger } from '../observability/logger.js';
+import { PipelineError } from '../domain/errors.js';
+import { withMatterLock } from '../registry/locking.js';
 import type { CanonicalTask, CreateTaskInput, UpdateTaskInput } from './registry.types.js';
 import { HUMAN_SENSITIVE_FIELDS } from './registry.types.js';
-import type { CanonicalTaskId, PaginationParams, PaginatedResult } from '../kernel/types.js';
+import type { CanonicalTaskId, PaginationParams, PaginatedResult } from '../domain/types.js';
 
 export class RegistryService {
   private repo = new RegistryRepo();

@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "migrate": "tsx scripts/migrate.ts",
     "seed": "tsx scripts/seed.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc -p tsconfig.test.json --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

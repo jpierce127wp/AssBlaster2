@@ -1,6 +1,6 @@
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type pg from 'pg';
-import type { AuditAction, AuditActorType } from '../kernel/types.js';
+import type { AuditAction, AuditActorType } from '../domain/types.js';
 
 export interface AuditEntry {
   entityType: string;

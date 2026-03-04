@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ReviewService } from './review.service.js';
-import { NotFoundError, ValidationError } from '../kernel/errors.js';
+import { NotFoundError, ValidationError } from '../domain/errors.js';
 import { z } from 'zod';
 
 const reviewService = new ReviewService();

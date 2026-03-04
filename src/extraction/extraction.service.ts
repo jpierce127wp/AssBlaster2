@@ -1,13 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { loadConfig } from '../kernel/config.js';
-import { getLogger } from '../kernel/logger.js';
-import { EvidenceRepo } from '../evidence/evidence.repo.js';
+import { loadConfig } from '../app/config.js';
+import { getLogger } from '../observability/logger.js';
+import { EvidenceRepo } from '../ingestion/evidence.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { ActionSpanRepo } from './extraction.repo.js';
 import { EXTRACTION_SYSTEM_PROMPT, EXTRACTION_TOOL_DEFINITION } from './extraction.prompt.js';
 import { actionSpanSchema, MIN_EXTRACTION_CONFIDENCE, type ActionSpan, type ExtractionResult } from './extraction.types.js';
-import { PipelineError } from '../kernel/errors.js';
-import type { EvidenceEventId } from '../kernel/types.js';
+import { PipelineError } from '../domain/errors.js';
+import type { EvidenceEventId } from '../domain/types.js';
 
 export class ExtractionService {
   private client: Anthropic;

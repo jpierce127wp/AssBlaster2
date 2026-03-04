@@ -1,7 +1,7 @@
 import type pg from 'pg';
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type { ActionSpanRow } from './extraction.types.js';
-import type { ActionSpanId, EvidenceEventId } from '../kernel/types.js';
+import type { ActionSpanId, EvidenceEventId } from '../domain/types.js';
 
 export class ActionSpanRepo {
   private get pool(): pg.Pool {

@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { RegistryService } from './registry.service.js';
 import { RegistryRepo } from './registry.repo.js';
-import { NotFoundError } from '../kernel/errors.js';
-import { getQueue, QUEUE_NAMES } from '../kernel/queue.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import { NotFoundError } from '../domain/errors.js';
+import { getQueue, QUEUE_NAMES } from '../lib/infra/queue.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 const registryService = new RegistryService();
 const registryRepo = new RegistryRepo();

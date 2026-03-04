@@ -1,7 +1,7 @@
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type pg from 'pg';
 import type { ClioTaskLink } from './sync.types.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 export class SyncRepo {
   private get pool(): pg.Pool {

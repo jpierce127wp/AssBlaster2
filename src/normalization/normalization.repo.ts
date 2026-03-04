@@ -1,7 +1,7 @@
 import type pg from 'pg';
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type { CandidateTaskRow } from './normalization.types.js';
-import type { CandidateTaskId, EvidenceEventId, ActionSpanId } from '../kernel/types.js';
+import type { CandidateTaskId, EvidenceEventId, ActionSpanId } from '../domain/types.js';
 
 export class CandidateTaskRepo {
   private get pool(): pg.Pool {

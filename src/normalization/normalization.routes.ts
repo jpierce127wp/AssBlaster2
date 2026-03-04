@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { CandidateTaskRepo } from './normalization.repo.js';
-import { NotFoundError } from '../kernel/errors.js';
-import type { CandidateTaskId } from '../kernel/types.js';
+import { NotFoundError } from '../domain/errors.js';
+import type { CandidateTaskId } from '../domain/types.js';
 
 const candidateTaskRepo = new CandidateTaskRepo();
 

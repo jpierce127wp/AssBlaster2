@@ -1,9 +1,9 @@
 import 'dotenv/config';
-import { loadConfig } from './kernel/config.js';
-import { createLogger } from './kernel/logger.js';
-import { createPool, closePool } from './kernel/db.js';
-import { createRedis, closeRedis } from './kernel/redis.js';
-import { closeQueues } from './kernel/queue.js';
+import { loadConfig } from './app/config.js';
+import { createLogger } from './observability/logger.js';
+import { createPool, closePool } from './lib/infra/db.js';
+import { createRedis, closeRedis } from './lib/infra/redis.js';
+import { closeQueues } from './lib/infra/queue.js';
 import { startServer } from './server.js';
 import { startWorkers } from './workers.js';
 

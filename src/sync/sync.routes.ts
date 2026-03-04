@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { SyncService } from './sync.service.js';
-import { NotFoundError } from '../kernel/errors.js';
+import { NotFoundError } from '../domain/errors.js';
 import { RegistryRepo } from '../registry/registry.repo.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 const syncService = new SyncService();
 const registryRepo = new RegistryRepo();

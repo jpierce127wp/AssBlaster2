@@ -1,8 +1,8 @@
-import { getLogger } from '../kernel/logger.js';
-import { getQueue, QUEUE_NAMES } from '../kernel/queue.js';
-import { EvidenceRepo } from '../evidence/evidence.repo.js';
+import { getLogger } from '../observability/logger.js';
+import { getQueue, QUEUE_NAMES } from '../lib/infra/queue.js';
+import { EvidenceRepo } from '../ingestion/evidence.repo.js';
 import { AuditRepo } from './audit.repo.js';
-import type { EvidenceEventId } from '../kernel/types.js';
+import type { EvidenceEventId } from '../domain/types.js';
 
 export class ReplayService {
   private evidenceRepo = new EvidenceRepo();

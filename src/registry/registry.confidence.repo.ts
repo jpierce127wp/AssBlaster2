@@ -1,7 +1,7 @@
 import type pg from 'pg';
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type { CanonicalTaskFieldConfidence } from './registry.types.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 export class FieldConfidenceRepo {
   private get pool(): pg.Pool {

@@ -1,7 +1,7 @@
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type pg from 'pg';
 import type { ReviewItem, ReviewDecision } from './review.types.js';
-import type { CandidateTaskId, ReviewReason, PaginationParams, PaginatedResult } from '../kernel/types.js';
+import type { CandidateTaskId, ReviewReason, PaginationParams, PaginatedResult } from '../domain/types.js';
 
 export class ReviewRepo {
   private get pool(): pg.Pool {

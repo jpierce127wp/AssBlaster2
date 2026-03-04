@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ReplayService } from './replay.service.js';
-import { ValidationError } from '../kernel/errors.js';
-import type { EvidenceEventId } from '../kernel/types.js';
+import { ValidationError } from '../domain/errors.js';
+import type { EvidenceEventId } from '../domain/types.js';
 
 const replayService = new ReplayService();
 

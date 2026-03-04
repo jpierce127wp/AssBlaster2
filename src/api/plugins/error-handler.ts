@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
-import { DomainError, PipelineError } from '../../kernel/errors.js';
-import { getLogger } from '../../kernel/logger.js';
+import { DomainError, PipelineError } from '../../domain/errors.js';
+import { getLogger } from '../../observability/logger.js';
 
 export async function errorHandlerPlugin(app: FastifyInstance): Promise<void> {
   app.setErrorHandler((error, request, reply) => {

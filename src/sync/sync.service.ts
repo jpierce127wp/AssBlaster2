@@ -1,13 +1,13 @@
-import { getLogger } from '../kernel/logger.js';
+import { getLogger } from '../observability/logger.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { RegistryRepo } from '../registry/registry.repo.js';
 import { SyncRepo } from './sync.repo.js';
 import { SyncReconciler } from './sync.reconciler.js';
-import { ClioClient } from './clio/clio.client.js';
-import { mapPriority, mapStatus } from './clio/clio.field-map.js';
+import { ClioClient } from '../clio/clio.client.js';
+import { mapPriority, mapStatus } from '../clio/clio.field-map.js';
 import type { SyncResult } from './sync.types.js';
-import { PipelineError } from '../kernel/errors.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import { PipelineError } from '../domain/errors.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 export class SyncService {
   private registryRepo = new RegistryRepo();

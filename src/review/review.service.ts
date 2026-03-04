@@ -1,9 +1,9 @@
-import { getLogger } from '../kernel/logger.js';
+import { getLogger } from '../observability/logger.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { ReviewRepo } from './review.repo.js';
-import { NotFoundError } from '../kernel/errors.js';
+import { NotFoundError } from '../domain/errors.js';
 import type { ReviewItem, ReviewDecision } from './review.types.js';
-import type { PaginationParams, PaginatedResult, CandidateTaskId, ReviewReason } from '../kernel/types.js';
+import type { PaginationParams, PaginatedResult, CandidateTaskId, ReviewReason } from '../domain/types.js';
 
 export class ReviewService {
   private repo = new ReviewRepo();

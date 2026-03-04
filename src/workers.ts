@@ -1,9 +1,9 @@
-import { getLogger } from './kernel/logger.js';
-import { startEvidenceWorker } from './evidence/evidence.worker.js';
+import { getLogger } from './observability/logger.js';
+import { startEvidenceWorker } from './ingestion/evidence.worker.js';
 import { startExtractionWorker } from './extraction/extraction.worker.js';
 import { startNormalizationWorker } from './normalization/normalization.worker.js';
-import { startIdentityWorker } from './identity/identity.worker.js';
-import { startDedupWorker } from './dedup/dedup.worker.js';
+import { startIdentityWorker } from './resolution/identity.worker.js';
+import { startDedupWorker } from './dedupe/dedup.worker.js';
 import { startAssignmentWorker } from './assignment/assignment.worker.js';
 import { startSyncWorker } from './sync/sync.worker.js';
 

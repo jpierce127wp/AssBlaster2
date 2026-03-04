@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
-import { getLogger } from '../kernel/logger.js';
+import { getLogger } from '../observability/logger.js';
 import { SyncRepo } from './sync.repo.js';
-import { ClioClient } from './clio/clio.client.js';
+import { ClioClient } from '../clio/clio.client.js';
 import type { CanonicalTask } from '../registry/registry.types.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 export class SyncReconciler {
   private syncRepo = new SyncRepo();

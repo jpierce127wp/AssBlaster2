@@ -1,7 +1,7 @@
 import { buildApp } from './api/app.js';
-import { loadConfig } from './kernel/config.js';
-import { getLogger } from './kernel/logger.js';
-import { evidenceRoutes } from './evidence/evidence.routes.js';
+import { loadConfig } from './app/config.js';
+import { getLogger } from './observability/logger.js';
+import { evidenceRoutes } from './ingestion/evidence.routes.js';
 import { registryRoutes } from './registry/registry.routes.js';
 import { reviewRoutes } from './review/review.routes.js';
 import { normalizationRoutes } from './normalization/normalization.routes.js';

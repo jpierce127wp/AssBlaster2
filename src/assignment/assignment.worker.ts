@@ -1,9 +1,9 @@
 import { Worker, type Job } from 'bullmq';
-import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
-import { loadConfig } from '../kernel/config.js';
-import { getLogger } from '../kernel/logger.js';
+import { QUEUE_NAMES, getQueue, type JobDataMap } from '../lib/infra/queue.js';
+import { loadConfig } from '../app/config.js';
+import { getLogger } from '../observability/logger.js';
 import { AssignmentService } from './assignment.service.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 const assignmentService = new AssignmentService();
 

@@ -1,10 +1,10 @@
 import { Worker, type Job } from 'bullmq';
-import { QUEUE_NAMES, getQueue, type JobDataMap } from '../kernel/queue.js';
-import { loadConfig } from '../kernel/config.js';
-import { getLogger } from '../kernel/logger.js';
+import { QUEUE_NAMES, getQueue, type JobDataMap } from '../lib/infra/queue.js';
+import { loadConfig } from '../app/config.js';
+import { getLogger } from '../observability/logger.js';
 import { ExtractionService } from './extraction.service.js';
-import { EvidenceRepo } from '../evidence/evidence.repo.js';
-import type { EvidenceEventId } from '../kernel/types.js';
+import { EvidenceRepo } from '../ingestion/evidence.repo.js';
+import type { EvidenceEventId } from '../domain/types.js';
 
 const extractionService = new ExtractionService();
 const evidenceRepo = new EvidenceRepo();

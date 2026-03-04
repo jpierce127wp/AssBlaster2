@@ -1,5 +1,5 @@
-import { getPool } from '../kernel/db.js';
-import { getRedis } from '../kernel/redis.js';
+import { getPool } from '../lib/infra/db.js';
+import { getRedis } from '../lib/infra/redis.js';
 
 export interface SystemMetrics {
   timestamp: string;

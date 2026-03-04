@@ -1,15 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { loadConfig } from '../kernel/config.js';
-import { getLogger } from '../kernel/logger.js';
-import { EvidenceRepo } from '../evidence/evidence.repo.js';
+import { loadConfig } from '../app/config.js';
+import { getLogger } from '../observability/logger.js';
+import { EvidenceRepo } from '../ingestion/evidence.repo.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { ActionSpanRepo } from '../extraction/extraction.repo.js';
 import { CandidateTaskRepo } from './normalization.repo.js';
 import { NORMALIZATION_SYSTEM_PROMPT, NORMALIZATION_TOOL_DEFINITION } from './normalization.prompt.js';
 import { candidateTaskSchema, type CandidateTask, type NormalizationResult } from './normalization.types.js';
 import type { ActionSpanRow } from '../extraction/extraction.types.js';
-import type { EvidenceEventId, ActionSpanId } from '../kernel/types.js';
-import { getClock } from '../kernel/clock.js';
+import type { EvidenceEventId, ActionSpanId } from '../domain/types.js';
+import { getClock } from '../lib/time/clock.js';
 
 export class NormalizationService {
   private client: Anthropic;

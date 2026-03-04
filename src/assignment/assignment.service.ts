@@ -1,9 +1,9 @@
-import { getLogger } from '../kernel/logger.js';
-import { PipelineError } from '../kernel/errors.js';
+import { getLogger } from '../observability/logger.js';
+import { PipelineError } from '../domain/errors.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { RegistryRepo } from '../registry/registry.repo.js';
 import type { AssignmentResult, AssignmentMethod } from './assignment.types.js';
-import type { CanonicalTaskId } from '../kernel/types.js';
+import type { CanonicalTaskId } from '../domain/types.js';
 
 /** Ambiguous assignee tokens that should not be resolved to a person */
 export const AMBIGUOUS_ASSIGNEES = new Set(['we', 'someone', 'somebody', 'the team', 'us', 'anyone']);

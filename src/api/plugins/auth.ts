@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { AuthenticationError } from '../../kernel/errors.js';
-import { loadConfig } from '../../kernel/config.js';
+import { AuthenticationError } from '../../domain/errors.js';
+import { loadConfig } from '../../app/config.js';
 
 export async function authPlugin(app: FastifyInstance): Promise<void> {
   app.addHook('onRequest', async (request: FastifyRequest, _reply: FastifyReply) => {

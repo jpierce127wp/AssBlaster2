@@ -1,7 +1,7 @@
-import { getPool } from '../kernel/db.js';
+import { getPool } from '../lib/infra/db.js';
 import type pg from 'pg';
 import type { CanonicalTask, TaskEvidenceLink, CreateTaskInput, UpdateTaskInput, TaskFingerprint } from './registry.types.js';
-import type { CanonicalTaskId, PaginationParams, PaginatedResult } from '../kernel/types.js';
+import type { CanonicalTaskId, PaginationParams, PaginatedResult } from '../domain/types.js';
 
 export class RegistryRepo {
   private get pool(): pg.Pool {

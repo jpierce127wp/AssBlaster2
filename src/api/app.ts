@@ -1,6 +1,6 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
-import { getLogger } from '../kernel/logger.js';
+import { getLogger } from '../observability/logger.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { authPlugin } from './plugins/auth.js';
 import { requestIdPlugin } from './plugins/request-id.js';
