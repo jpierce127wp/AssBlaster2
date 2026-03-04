@@ -11,11 +11,15 @@ import { DedupAdjudicator } from './dedup.adjudicator.js';
 import { resolveDueDateConflict, resolveAssignmentConflict } from './dedup.conflicts.js';
 import { DEDUP_THRESHOLDS, type DedupDecision } from './dedup.types.js';
 import { PipelineError } from '../domain/errors.js';
-import { TERMINAL_STATUSES } from '../domain/policy.js';
+import { TERMINAL_STATUSES, SENSITIVE_FIELDS, SENSITIVE_FIELD_MIN_CONFIDENCE } from '../domain/policy.js';
 import { withMatterLock } from '../registry/locking.js';
 import type { CandidateTaskRow } from '../normalization/normalization.types.js';
 import type { CanonicalTaskId, CandidateTaskId, EvidenceEventId, SourceAuthority } from '../domain/types.js';
 
+/**
+ * All merge decisions include confidence and rationale (D8).
+ * Review preferred over uncertain auto-action (D9).
+ */
 export class DedupService {
   private deterministic = new DeterministicDedup();
   private semantic = new SemanticDedup();
@@ -468,16 +472,29 @@ export class DedupService {
       }
     }
 
+    // D11: Gate sensitive field enrichment on combined confidence
+    const combinedConfidence = Math.min(
+      candidateTask.confidence_extraction,
+      candidateTask.confidence_normalization,
+      candidateTask.confidence_resolution || 1,
+    );
+    const gateSensitive = combinedConfidence < SENSITIVE_FIELD_MIN_CONFIDENCE;
+
+    if (gateSensitive) {
+      logger.info({ targetTaskId, combinedConfidence, threshold: SENSITIVE_FIELD_MIN_CONFIDENCE },
+        'Confidence below sensitive field threshold, gating sensitive fields');
+    }
+
     // Proceed with enrichment (only fills blank fields)
     await this.registry.enrichTask(
       targetTaskId,
       {
         targetObject: candidateTask.target_object,
         desiredOutcome: candidateTask.desired_outcome,
-        assigneeUserId: candidateTask.assignee_user_id,
+        assigneeUserId: gateSensitive ? null : candidateTask.assignee_user_id,
         assigneeRole: candidateTask.assignee_name,
         dueDateKind: candidateTask.due_date_kind,
-        dueDateWindowStart: candidateTask.due_date_window_start,
+        dueDateWindowStart: gateSensitive ? null : candidateTask.due_date_window_start,
         dueDateWindowEnd: candidateTask.due_date_window_end,
         priority: candidateTask.priority,
       },

@@ -1,4 +1,5 @@
 import type { CanonicalTaskId, CanonicalTaskStatus, ActionType, DueDateKind, TaskPriority } from './types.js';
+import { HUMAN_PROTECTED_FIELDS } from './policy.js';
 
 /** Task fingerprint for deterministic dedup */
 export interface TaskFingerprint {
@@ -90,14 +91,8 @@ export interface UpdateTaskInput {
 
 /** Fields that should not be overwritten by pipeline if a human has edited the task */
 export const HUMAN_SENSITIVE_FIELDS: ReadonlySet<string> = new Set([
-  'canonical_summary',
-  'assignee_user_id',
-  'assignee_role',
-  'due_date_window_start',
-  'due_date_window_end',
-  'due_date_kind',
-  'status',
-  'priority',
+  ...HUMAN_PROTECTED_FIELDS,
+  'assignee_role', 'due_date_window_end', 'due_date_kind', 'priority',
 ]);
 
 /** Fields safe for additive pipeline updates even after human edit */

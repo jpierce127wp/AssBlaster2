@@ -7,6 +7,7 @@ import { CandidateTaskRepo } from '../normalization/normalization.repo.js';
 import { TIER_CONFIDENCE } from './identity.types.js';
 import type { IdentityResolutionResult } from './identity.types.js';
 import { PipelineError } from '../domain/errors.js';
+import { MATTER_CONFIDENCE_MIN } from '../domain/policy.js';
 import type { EvidenceEventId, CandidateTaskId } from '../domain/types.js';
 
 export class IdentityService {
@@ -53,6 +54,17 @@ export class IdentityService {
             tier: matterResult.tier,
             confidence: matterConfidence,
           }, 'Matter resolved');
+
+          // D4: Weak matter confidence → route to review rather than guess
+          if (matterConfidence > 0 && matterConfidence < MATTER_CONFIDENCE_MIN) {
+            logger.warn({ ctId, matterId, confidence: matterConfidence },
+              'Matter confidence below minimum, routing to review');
+            await this.reviewService.createReviewItem({
+              candidateTaskId: ctId as CandidateTaskId,
+              reason: 'weak_identity',
+              priority: 2,
+            });
+          }
         } else {
           // Tier 6: Unresolved — route to review if matter reference exists
           // but we could not resolve it (risk of contamination)

@@ -1,9 +1,6 @@
 import { RegistryRepo } from '../registry/registry.repo.js';
 import type { CanonicalTask, TaskFingerprint } from '../registry/registry.types.js';
-import type { CanonicalTaskStatus } from '../domain/types.js';
-
-/** Statuses that should not be matched for deterministic dedup merge */
-const TERMINAL_STATUSES: Set<CanonicalTaskStatus> = new Set(['complete', 'superseded', 'discarded']);
+import { TERMINAL_STATUSES } from '../domain/policy.js';
 
 export class DeterministicDedup {
   private registryRepo = new RegistryRepo();

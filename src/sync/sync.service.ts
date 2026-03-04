@@ -9,6 +9,10 @@ import type { SyncResult } from './sync.types.js';
 import { PipelineError } from '../domain/errors.js';
 import type { CanonicalTaskId } from '../domain/types.js';
 
+/**
+ * The only pipeline stage that writes to Clio.
+ * See policy D1 (SOURCE_OF_TRUTH) and D2 (DIRECT_SOURCE_TO_CLIO).
+ */
 export class SyncService {
   private registryRepo = new RegistryRepo();
   private syncRepo = new SyncRepo();

@@ -6,6 +6,7 @@ import { DEDUP_THRESHOLDS } from '../../src/domain/dedup.types.js';
 import { TIER_CONFIDENCE } from '../../src/domain/identity.types.js';
 import { HUMAN_SENSITIVE_FIELDS } from '../../src/domain/registry.types.js';
 import { MIN_EXTRACTION_CONFIDENCE } from '../../src/domain/extraction.types.js';
+import { TERMINAL_STATUSES } from '../../src/domain/policy.js';
 
 interface ScenarioA {
   candidate_tasks: Array<{
@@ -135,8 +136,7 @@ describe('Golden Scenarios', () => {
     const scenario = loadFixture<ScenarioC>('scenarios/scenario-c.json');
 
     it('existing task has terminal status', () => {
-      const terminalStatuses = new Set(['complete', 'superseded', 'discarded']);
-      expect(terminalStatuses.has(scenario.existing_canonical_task.status)).toBe(true);
+      expect(TERMINAL_STATUSES.has(scenario.existing_canonical_task.status)).toBe(true);
     });
 
     it('candidate fingerprint matches existing', () => {

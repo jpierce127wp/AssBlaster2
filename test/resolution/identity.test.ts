@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { TIER_CONFIDENCE, type IdentityResolutionTier } from '../../src/domain/identity.types.js';
+import { MATTER_CONFIDENCE_MIN } from '../../src/domain/policy.js';
 
 describe('TIER_CONFIDENCE', () => {
   it('tier 1 should have confidence 0.98', () => {
@@ -46,5 +47,25 @@ describe('TIER_CONFIDENCE', () => {
     expect(TIER_CONFIDENCE[5]).toBeLessThan(0.85);
     expect(TIER_CONFIDENCE[5]).toBeGreaterThan(0);
     expect(TIER_CONFIDENCE[6]).toBe(0);
+  });
+});
+
+describe('MATTER_CONFIDENCE_MIN (D4)', () => {
+  it('threshold should be 0.75', () => {
+    expect(MATTER_CONFIDENCE_MIN).toBe(0.75);
+  });
+
+  it('tier 5 confidence (0.65) falls below the threshold', () => {
+    expect(TIER_CONFIDENCE[5]).toBeLessThan(MATTER_CONFIDENCE_MIN);
+  });
+
+  it('tier 4 confidence (0.78) meets the threshold', () => {
+    expect(TIER_CONFIDENCE[4]).toBeGreaterThanOrEqual(MATTER_CONFIDENCE_MIN);
+  });
+
+  it('tiers 1–3 all exceed the threshold', () => {
+    expect(TIER_CONFIDENCE[1]).toBeGreaterThan(MATTER_CONFIDENCE_MIN);
+    expect(TIER_CONFIDENCE[2]).toBeGreaterThan(MATTER_CONFIDENCE_MIN);
+    expect(TIER_CONFIDENCE[3]).toBeGreaterThan(MATTER_CONFIDENCE_MIN);
   });
 });

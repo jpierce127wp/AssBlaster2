@@ -23,6 +23,10 @@ export class DedupAdjudicator implements DuplicateAdjudicator {
     this.client = new Anthropic({ apiKey: config.anthropicApiKey });
   }
 
+  /**
+   * Merge only when same deliverable (D7).
+   * Prefer enrichment over replacement (D10).
+   */
   async adjudicate(
     newSummary: string,
     newTargetObject: string | null,
