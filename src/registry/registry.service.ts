@@ -11,8 +11,8 @@ export class RegistryService {
   private repo = new RegistryRepo();
   private auditRepo = new AuditRepo();
 
-  async createTask(input: CreateTaskInput, evidenceEventId: string, actionSpanId: string | null): Promise<CanonicalTask> {
-    return withMatterLock(input.matterId ?? null, async () => {
+  async createTask(input: CreateTaskInput, evidenceEventId: string, actionSpanId: string | null, options?: { skipLock?: boolean }): Promise<CanonicalTask> {
+    const inner = async () => {
       const logger = getLogger();
       const task = await this.repo.create(input);
 
@@ -37,7 +37,10 @@ export class RegistryService {
 
       logger.info({ taskId: task.id, summary: task.canonical_summary }, 'Canonical task created');
       return task;
-    });
+    };
+
+    if (options?.skipLock) return inner();
+    return withMatterLock(input.matterId ?? null, inner);
   }
 
   async updateTask(id: CanonicalTaskId, input: UpdateTaskInput): Promise<CanonicalTask> {
@@ -74,15 +77,17 @@ export class RegistryService {
     },
     evidenceEventId: string,
     actionSpanId: string | null,
+    options?: { skipLock?: boolean },
   ): Promise<{ enrichedFields: string[] }> {
     const task = await this.repo.findById(taskId);
     if (!task) throw new PipelineError(`Canonical task not found: ${taskId}`, {
       code: 'CANONICAL_TASK_NOT_FOUND', retryable: false, entityId: taskId, stage: 'registry',
     });
 
-    return withMatterLock(task.matter_id, () =>
-      this.enrichTaskInner(taskId, task, candidateData, evidenceEventId, actionSpanId),
-    );
+    const inner = () => this.enrichTaskInner(taskId, task, candidateData, evidenceEventId, actionSpanId);
+
+    if (options?.skipLock) return inner();
+    return withMatterLock(task.matter_id, inner);
   }
 
   private async enrichTaskInner(

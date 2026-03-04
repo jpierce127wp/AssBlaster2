@@ -4,6 +4,7 @@ import { createLogger } from './observability/logger.js';
 import { createPool, closePool } from './lib/infra/db.js';
 import { createRedis, closeRedis } from './lib/infra/redis.js';
 import { closeQueues } from './lib/infra/queue.js';
+import { createEmbeddingProvider } from './lib/infra/embedding.js';
 import { startServer } from './server.js';
 import { startWorkers } from './workers.js';
 
@@ -73,6 +74,13 @@ async function main(): Promise<void> {
   // Initialize infrastructure
   createPool(config.databaseUrl);
   createRedis(config.redisUrl);
+  createEmbeddingProvider({
+    provider: config.embeddingProvider,
+    voyageApiKey: config.voyageApiKey,
+    openaiApiKey: config.openaiApiKey,
+    model: config.embeddingModel,
+    dimensions: config.embeddingDimensions,
+  });
 
   // Graceful shutdown
   const shutdown = async (signal: string) => {

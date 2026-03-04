@@ -333,7 +333,7 @@ export class DedupService {
       matterId: candidateTask.matter_id,
       fingerprint,
       summaryEmbedding: embedding,
-    }, evidenceEventId, candidateTask.action_span_id as string | null);
+    }, evidenceEventId, candidateTask.action_span_id as string | null, { skipLock: true });
 
     await this.mergeDecisionRepo.insert({
       candidateTaskId,
@@ -500,6 +500,7 @@ export class DedupService {
       },
       evidenceEventId,
       candidateTask.action_span_id as string | null,
+      { skipLock: true },
     );
   }
 }
