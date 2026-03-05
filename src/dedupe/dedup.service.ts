@@ -61,7 +61,7 @@ export class DedupService {
       candidateTask.confidence_normalization,
       candidateTask.confidence_resolution || 1,
     );
-    if (combinedConfidence < DEDUP_THRESHOLDS.ADJUDICATION_REVIEW) {
+    if (combinedConfidence < DEDUP_THRESHOLDS.DISCARD_MIN) {
       logger.info({ candidateTaskId, combinedConfidence }, 'Discarding low-confidence candidate');
 
       await this.mergeDecisionRepo.insert({

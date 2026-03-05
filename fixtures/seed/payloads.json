@@ -1,0 +1,167 @@
+[
+  {
+    "idempotency_key": "seed-johnson-phone-001",
+    "source_type": "phone",
+    "raw_text": "Attorney Jones: Sarah, I need you to handle a few things on the Johnson v. Smith case. First, we need to file the motion to compel by March 15th — the discovery deadline is coming up fast and opposing counsel has been stonewalling on the document production requests. Second, we need to schedule Dr. Williams' deposition before the end of March. His expert report is critical for our damages argument. Third, make sure the discovery responses go out by March 22nd. The supplemental interrogatory answers need to include the updated financials the client provided last week.\n\nSarah Chen: Got it. I'll draft the motion to compel this week and have it on your desk for review by the 12th. I'll reach out to Dr. Williams' office today to coordinate deposition scheduling. And I'll pull together the discovery responses — I already have most of the documents organized.\n\nAttorney Jones: Perfect. Let me know if opposing counsel pushes back on the deposition dates.",
+    "source_metadata": {
+      "call_duration_seconds": 342,
+      "call_direction": "internal",
+      "recording_id": "rec-2026-03-05-1423"
+    },
+    "participants": [
+      { "name": "Attorney Jones", "role": "attorney" },
+      { "name": "Sarah Chen", "role": "paralegal" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Johnson v. Smith", "Johnson"],
+    "contact_hints": ["Sarah Chen", "Dr. Williams"],
+    "source_timestamp": "2026-03-05T14:23:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-johnson-email-001",
+    "source_type": "email",
+    "raw_text": "From: Attorney Jones <jones@lawfirm.com>\nTo: Sarah Chen <schen@lawfirm.com>\nCc: David Park <dpark@lawfirm.com>\nSubject: Johnson v. Smith — Upcoming Deadlines\nDate: Wed, 05 Mar 2026 16:45:00 -0500\n\nSarah,\n\nFollowing up on our call earlier. Just want to make sure we're aligned on the Johnson deadlines:\n\n1. Motion to Compel — Must be filed by March 15. I reviewed the draft order and it looks solid. Please finalize the supporting declaration and exhibits.\n\n2. Discovery Responses — Supplemental responses due March 22. Make sure we include the bank statements and revised damage calculations from the client.\n\nPlease confirm you have everything you need. Let me know if there are any issues with the document production log.\n\nThanks,\nJones",
+    "source_metadata": {
+      "message_id": "msg-20260305-164500-jones",
+      "thread_id": "thread-johnson-deadlines-mar2026",
+      "has_attachments": false
+    },
+    "participants": [
+      { "name": "Attorney Jones", "role": "attorney" },
+      { "name": "Sarah Chen", "role": "paralegal" },
+      { "name": "David Park", "role": "associate" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Johnson v. Smith", "Johnson"],
+    "contact_hints": ["Sarah Chen", "David Park"],
+    "source_external_id": "msg-20260305-164500-jones",
+    "source_thread_id": "thread-johnson-deadlines-mar2026",
+    "source_timestamp": "2026-03-05T21:45:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-johnson-meeting-001",
+    "source_type": "meeting",
+    "raw_text": "Johnson v. Smith — Weekly Case Strategy Meeting\nDate: March 5, 2026, 3:00 PM\nAttendees: Attorney Jones, Sarah Chen, David Park\n\nAgenda & Discussion:\n\n1. Motion to Compel Status\n   - Jones: Draft is in good shape. Sarah will finalize supporting declaration and exhibits.\n   - Target filing date: March 15 (court deadline).\n   - Jones to review final version by March 13.\n\n2. Dr. Williams Deposition\n   - Sarah reached out to Dr. Williams' office. Tentatively scheduled for March 28.\n   - Need to prepare deposition outline and document binder by March 26.\n   - Jones will handle direct examination.\n\n3. Discovery Responses\n   - Supplemental interrogatory answers due March 22.\n   - Client provided updated bank records — Sarah incorporating into responses.\n\n4. New Action Item — Spoliation Research\n   - Jones: Opposing counsel may have destroyed relevant emails. David, please research case law on spoliation sanctions in this jurisdiction. I need a memo by March 25.\n   - David Park: Will do. I'll start with the state rules and recent appellate decisions.\n\nAction Items:\n- Sarah Chen: File motion to compel by 3/15\n- Sarah Chen: Prepare deposition materials for Dr. Williams by 3/26\n- Sarah Chen: Finalize discovery responses by 3/22\n- David Park: Research spoliation sanctions, memo due 3/25",
+    "source_metadata": {
+      "meeting_type": "case_strategy",
+      "location": "Conference Room B",
+      "duration_minutes": 45
+    },
+    "participants": [
+      { "name": "Attorney Jones", "role": "attorney" },
+      { "name": "Sarah Chen", "role": "paralegal" },
+      { "name": "David Park", "role": "associate" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Johnson v. Smith", "Johnson"],
+    "contact_hints": ["Sarah Chen", "David Park", "Dr. Williams"],
+    "source_timestamp": "2026-03-05T20:00:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-martinez-email-001",
+    "source_type": "email",
+    "raw_text": "From: John Rivera <jrivera@lawfirm.com>\nTo: Michael Torres <mtorres@lawfirm.com>\nSubject: Martinez v. ABC Corp — Summary Judgment Prep\nDate: Wed, 05 Mar 2026 09:30:00 -0500\n\nHi Michael,\n\nJust a reminder that the brief in support of our summary judgment motion in Martinez v. ABC Corp is due on March 20th. Can you draft the statement of facts section? I'll handle the legal argument.\n\nAlso, we need to respond to the interrogatories by March 10th. Please review the client's answers and flag any issues before I finalize.\n\nThanks,\nJohn",
+    "source_metadata": {
+      "message_id": "msg-20260305-0930-rivera",
+      "thread_id": "thread-martinez-sjm-mar2026",
+      "has_attachments": false
+    },
+    "participants": [
+      { "name": "John Rivera", "role": "attorney" },
+      { "name": "Michael Torres", "role": "associate" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Martinez v. ABC Corp", "Martinez"],
+    "contact_hints": ["Michael Torres"],
+    "source_external_id": "msg-20260305-0930-rivera",
+    "source_thread_id": "thread-martinez-sjm-mar2026",
+    "source_timestamp": "2026-03-05T14:30:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-martinez-phone-001",
+    "source_type": "phone",
+    "raw_text": "Voicemail from John Rivera to Michael Torres, March 5, 2026, 2:15 PM:\n\nHey Michael, it's John. Quick update on Martinez v. ABC Corp. In addition to the summary judgment brief, I need you to start putting together the witness list. We need to identify all fact witnesses and get their contact info confirmed by March 18th. Also, I spoke with Dr. Patel — our economic damages expert — and we need to coordinate with her on the report timeline. Can you reach out to her office and set up a call for next week? Her assistant's name is Linda. Thanks.",
+    "source_metadata": {
+      "call_duration_seconds": 67,
+      "call_direction": "internal",
+      "voicemail": true,
+      "recording_id": "rec-2026-03-05-1415"
+    },
+    "participants": [
+      { "name": "John Rivera", "role": "attorney" },
+      { "name": "Michael Torres", "role": "associate" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Martinez v. ABC Corp", "Martinez"],
+    "contact_hints": ["Michael Torres", "Dr. Patel", "Linda"],
+    "source_timestamp": "2026-03-05T19:15:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-martinez-meeting-001",
+    "source_type": "meeting",
+    "raw_text": "Martinez v. ABC Corp — Client Meeting Notes\nDate: March 5, 2026, 4:00 PM\nAttendees: John Rivera (Attorney), Michael Torres (Associate), Maria Martinez (Client)\n\nPrivileged & Confidential — Attorney-Client Communication\n\n1. Settlement Discussions\n   - Client reviewed ABC Corp's settlement offer of $150,000. Client rejects — wants to proceed to trial.\n   - Rivera: We'll send a formal rejection letter to opposing counsel by March 12.\n\n2. Sanctions Motion\n   - ABC Corp's counsel failed to produce the internal safety audit reports despite two court orders.\n   - Rivera: Michael, draft a sanctions motion. Filing deadline is March 18.\n   - Torres: I'll model it on the sanctions motion we filed in the Henderson case.\n\n3. Trial Preparation\n   - Client available for witness prep sessions starting March 23.\n   - Discussed key testimony points (privileged).\n\nAction Items:\n- John Rivera: Send settlement rejection letter by 3/12\n- Michael Torres: Draft sanctions motion by 3/18",
+    "source_metadata": {
+      "meeting_type": "client_meeting",
+      "location": "Conference Room A",
+      "duration_minutes": 60,
+      "privileged": true
+    },
+    "participants": [
+      { "name": "John Rivera", "role": "attorney" },
+      { "name": "Michael Torres", "role": "associate" },
+      { "name": "Maria Martinez", "role": "client" }
+    ],
+    "privilege_flags": {
+      "attorney_client": true
+    },
+    "matter_hints": ["Martinez v. ABC Corp", "Martinez"],
+    "contact_hints": ["Michael Torres", "Maria Martinez"],
+    "source_timestamp": "2026-03-05T21:00:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-cross-email-001",
+    "source_type": "email",
+    "raw_text": "From: Office Manager <admin@lawfirm.com>\nTo: All Attorneys <attorneys@lawfirm.com>\nSubject: Weekly Deadline Reminder — Week of March 9\nDate: Thu, 06 Mar 2026 08:00:00 -0500\n\nGood morning,\n\nHere is this week's deadline summary across active matters:\n\nJohnson v. Smith:\n- Motion to compel filing deadline: March 15 (Sarah Chen handling)\n- Supplemental discovery responses due: March 22\n\nMartinez v. ABC Corp:\n- Interrogatory responses due: March 10 (Michael Torres reviewing)\n- Summary judgment brief due: March 20\n\nPlease make sure all deadlines are tracked in the case management system.\n\nBest,\nKaren Liu\nOffice Manager",
+    "source_metadata": {
+      "message_id": "msg-20260306-0800-admin",
+      "thread_id": "thread-weekly-deadlines-mar09",
+      "has_attachments": false,
+      "distribution_list": true
+    },
+    "participants": [
+      { "name": "Karen Liu", "role": "office_manager" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": ["Johnson v. Smith", "Johnson", "Martinez v. ABC Corp", "Martinez"],
+    "contact_hints": ["Sarah Chen", "Michael Torres", "Karen Liu"],
+    "source_external_id": "msg-20260306-0800-admin",
+    "source_thread_id": "thread-weekly-deadlines-mar09",
+    "source_timestamp": "2026-03-06T13:00:00Z",
+    "language": "en"
+  },
+  {
+    "idempotency_key": "seed-noise-phone-001",
+    "source_type": "phone",
+    "raw_text": "Attorney Jones: Hey David, how was your weekend?\n\nDavid Park: Pretty good, thanks. Took the kids to the zoo. The weather was great for once.\n\nAttorney Jones: Nice. We should plan a firm outing sometime this spring. Maybe bowling or something.\n\nDavid Park: Yeah, that'd be fun. Last year's holiday party was a good time.\n\nAttorney Jones: Agreed. Alright, I'll let you get back to it. Talk later.\n\nDavid Park: Sounds good. See you at lunch.",
+    "source_metadata": {
+      "call_duration_seconds": 48,
+      "call_direction": "internal",
+      "recording_id": "rec-2026-03-05-0930"
+    },
+    "participants": [
+      { "name": "Attorney Jones", "role": "attorney" },
+      { "name": "David Park", "role": "associate" }
+    ],
+    "privilege_flags": {},
+    "matter_hints": [],
+    "contact_hints": [],
+    "source_timestamp": "2026-03-05T14:30:00Z",
+    "language": "en"
+  }
+]

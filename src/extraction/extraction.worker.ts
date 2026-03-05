@@ -26,6 +26,7 @@ async function processExtraction(job: Job<JobDataMap['extraction.extract']>): Pr
 
   if (result.actionSpanIds.length === 0) {
     logger.info({ evidenceEventId }, 'No action spans extracted, pipeline ends');
+    await evidenceRepo.updateState(evidenceEventId as EvidenceEventId, 'decided');
     return;
   }
 

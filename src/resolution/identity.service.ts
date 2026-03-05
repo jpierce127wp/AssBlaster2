@@ -66,15 +66,18 @@ export class IdentityService {
             });
           }
         } else {
-          // Tier 6: Unresolved — route to review if matter reference exists
-          // but we could not resolve it (risk of contamination)
-          logger.warn({ ctId, reference: candidateTask.matter_id }, 'Matter resolution failed, routing to review');
+          // Tier 6: Unresolved — use the extracted matter_id as-is.
+          // On a fresh system the matter hasn't been seen before, so keep
+          // the default confidence (0.5) instead of zeroing it out.
+          // A review item flags it for human verification without blocking
+          // the pipeline.
+          logger.warn({ ctId, reference: candidateTask.matter_id }, 'Matter not yet in registry, using extracted reference');
           await this.reviewService.createReviewItem({
             candidateTaskId: ctId as CandidateTaskId,
             reason: 'weak_identity',
-            priority: 1,
+            priority: 2,
           });
-          matterConfidence = 0;
+          // matterConfidence stays at default 0.5
         }
       }
 
@@ -92,7 +95,7 @@ export class IdentityService {
         ? 1.0
         : assigneeUserId
           ? 0.9
-          : 0.3;
+          : 0.7;
       const overallConfidence = Math.min(matterConfidence, assigneeConfidence);
 
       // Update the candidate task in-place with resolved IDs

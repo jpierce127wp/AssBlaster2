@@ -43,4 +43,6 @@ export const DEDUP_THRESHOLDS = {
   CREATE_NEW: 0.75,
   /** If adjudication confidence below this, route to review */
   ADJUDICATION_REVIEW: 0.75,
+  /** Pre-check: discard candidates with combined confidence below this */
+  DISCARD_MIN: 0.25,
 } as const;
