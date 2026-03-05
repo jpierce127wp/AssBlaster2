@@ -3,12 +3,14 @@ import { PipelineError } from '../domain/errors.js';
 import { AMBIGUOUS_ASSIGNEES } from '../domain/policy.js';
 import { AuditRepo } from '../observability/audit.repo.js';
 import { RegistryRepo } from '../registry/registry.repo.js';
+import { RoutingRulesRepo } from './routing-rules.js';
 import type { AssignmentResult, AssignmentMethod } from './assignment.types.js';
 import type { CanonicalTaskId } from '../domain/types.js';
 
 export class AssignmentService {
   private registryRepo = new RegistryRepo();
   private auditRepo = new AuditRepo();
+  private routingRulesRepo = new RoutingRulesRepo();
 
   async assign(canonicalTaskId: CanonicalTaskId): Promise<AssignmentResult> {
     const logger = getLogger();
@@ -51,8 +53,13 @@ export class AssignmentService {
       }
     }
 
-    // Tier 5: Practice area + action type rules (stub — no rules table yet)
-    logger.info({ taskId: canonicalTaskId }, 'Tier 5: no assignment rules table, skipping');
+    // Tier 5: Practice area + action type routing rules
+    const practiceArea = task.matter_id ?? '*';
+    const rule = await this.routingRulesRepo.findRule(practiceArea, task.action_type);
+    if (rule) {
+      logger.info({ taskId: canonicalTaskId, ruleId: rule.id, practiceArea, actionType: task.action_type }, 'Tier 5: routing rule match');
+      return this.logAndReturn(canonicalTaskId, rule.assignee_user_id, rule.assignee_role, 'rule');
+    }
 
     // Tier 6: Triage queue (unassigned)
     logger.info({ taskId: canonicalTaskId }, 'Tier 6: routing to triage queue');

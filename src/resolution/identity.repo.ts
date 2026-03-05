@@ -33,7 +33,7 @@ export class IdentityRepo {
       return JSON.parse(cached) as MatterResolution;
     }
 
-    // Tier 1: Explicit matter ID / case number (exact match)
+    // Tier 1: Explicit matter ID / case number (exact match via registry or canonical_tasks)
     const tier1 = await this.resolveMatterExact(reference);
     if (tier1) {
       const result: MatterResolution = { matterId: tier1, tier: 1 };
@@ -74,8 +74,21 @@ export class IdentityRepo {
     return null;
   }
 
-  /** Tier 1: Exact match on matter_id */
+  /** Tier 1: Exact match on matter_ref in registry, then canonical_tasks */
   async resolveMatterExact(id: string): Promise<string | null> {
+    // Check matter_registry first (authoritative source)
+    const regResult = await this.pool.query(
+      `SELECT matter_ref FROM matter_registry
+       WHERE LOWER(matter_ref) = LOWER($1)
+         OR $1 = ANY(aliases)
+       LIMIT 1`,
+      [id],
+    );
+    if (regResult.rows.length > 0) {
+      return regResult.rows[0].matter_ref as string;
+    }
+
+    // Fall back to canonical_tasks
     const result = await this.pool.query(
       `SELECT matter_id FROM canonical_tasks
        WHERE LOWER(matter_id) = LOWER($1) LIMIT 1`,
@@ -86,7 +99,19 @@ export class IdentityRepo {
 
   /** Tier 2: Look up matters linked to a contact name */
   async resolveMatterByContact(contactHint: string): Promise<string | null> {
-    // Search evidence events with matching contact hints that led to canonical tasks
+    // Check matter_registry by client_name first
+    const regResult = await this.pool.query(
+      `SELECT matter_ref FROM matter_registry
+       WHERE LOWER(client_name) = LOWER($1)
+         OR $1 = ANY(aliases)
+       LIMIT 1`,
+      [contactHint],
+    );
+    if (regResult.rows.length > 0) {
+      return regResult.rows[0].matter_ref as string;
+    }
+
+    // Fall back to evidence-based resolution
     const result = await this.pool.query(
       `SELECT ct.matter_id FROM canonical_tasks ct
        JOIN task_evidence_links tel ON tel.canonical_task_id = ct.id
@@ -113,8 +138,21 @@ export class IdentityRepo {
     return result.rows.length > 0 ? (result.rows[0].matter_id as string) : null;
   }
 
-  /** Tier 5: Semantic matter hints (fuzzy ILIKE match — existing logic) */
+  /** Tier 5: Semantic matter hints (fuzzy match via registry aliases then ILIKE) */
   async resolveMatterSemantic(reference: string): Promise<string | null> {
+    // Check registry display_name fuzzy match
+    const regResult = await this.pool.query(
+      `SELECT matter_ref FROM matter_registry
+       WHERE display_name ILIKE $1
+         OR matter_ref ILIKE $1
+       LIMIT 1`,
+      [`%${reference}%`],
+    );
+    if (regResult.rows.length > 0) {
+      return regResult.rows[0].matter_ref as string;
+    }
+
+    // Fall back to canonical_tasks ILIKE
     const result = await this.pool.query(
       `SELECT matter_id FROM canonical_tasks
        WHERE matter_id ILIKE $1 LIMIT 1`,
@@ -123,7 +161,7 @@ export class IdentityRepo {
     return result.rows.length > 0 ? (result.rows[0].matter_id as string) : null;
   }
 
-  /** Look up an assignee by name, checking cache first */
+  /** Look up an assignee by name, checking registry then canonical_tasks */
   async resolveAssignee(name: string): Promise<{ userId: string; assigneeName: string } | null> {
     const redis = getRedis();
     const cacheKey = `identity:assignee:${name.toLowerCase()}`;
@@ -134,7 +172,26 @@ export class IdentityRepo {
       return JSON.parse(cached);
     }
 
-    // Check canonical_tasks for existing assignee references
+    // Check user_registry first (authoritative source)
+    const regResult = await this.pool.query(
+      `SELECT user_ref, display_name FROM user_registry
+       WHERE active = true
+         AND (LOWER(display_name) = LOWER($1)
+           OR $1 = ANY(aliases)
+           OR display_name ILIKE $2)
+       LIMIT 1`,
+      [name, `%${name}%`],
+    );
+    if (regResult.rows.length > 0) {
+      const resolved = {
+        userId: regResult.rows[0].user_ref as string,
+        assigneeName: regResult.rows[0].display_name as string,
+      };
+      await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(resolved));
+      return resolved;
+    }
+
+    // Fall back to canonical_tasks
     const result = await this.pool.query(
       `SELECT assignee_user_id, assignee_role FROM canonical_tasks
        WHERE assignee_role ILIKE $1 AND assignee_user_id IS NOT NULL

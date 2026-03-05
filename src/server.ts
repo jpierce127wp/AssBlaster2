@@ -8,6 +8,8 @@ import { normalizationRoutes } from './normalization/normalization.routes.js';
 import { syncRoutes } from './sync/sync.routes.js';
 import { healthRoutes } from './observability/health.routes.js';
 import { replayRoutes } from './observability/replay.routes.js';
+import { clioRoutes } from './clio/clio.routes.js';
+import { identityRoutes } from './resolution/identity.routes.js';
 
 export async function startServer(): Promise<void> {
   const config = loadConfig();
@@ -22,6 +24,8 @@ export async function startServer(): Promise<void> {
   await app.register(syncRoutes, { prefix: '/api/v1' });
   await app.register(healthRoutes, { prefix: '/api/v1' });
   await app.register(replayRoutes, { prefix: '/api/v1' });
+  await app.register(clioRoutes, { prefix: '/api/v1' });
+  await app.register(identityRoutes, { prefix: '/api/v1' });
 
   await app.listen({ port: config.port, host: config.host });
   logger.info({ port: config.port, host: config.host }, 'Server started');
