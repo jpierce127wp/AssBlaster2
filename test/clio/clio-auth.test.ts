@@ -138,6 +138,8 @@ describe('ClioAuth', () => {
       expect(mockRedis.set).toHaveBeenCalledWith(
         'clio:oauth:tokens',
         expect.stringContaining('stored-token'),
+        'EX',
+        expect.any(Number),
       );
     });
 

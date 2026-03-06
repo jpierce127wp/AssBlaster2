@@ -35,11 +35,3 @@ export async function closeRedis(): Promise<void> {
     _redis = null;
   }
 }
-
-/** Create a new connection for BullMQ workers (they need dedicated connections) */
-export function createBullMQConnection(url: string): Redis {
-  return new Redis(url, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: true,
-  });
-}

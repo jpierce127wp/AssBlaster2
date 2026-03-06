@@ -121,6 +121,16 @@ async function main(): Promise<void> {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
 
+  process.on('uncaughtException', (err) => {
+    logger.fatal({ err }, 'Uncaught exception — shutting down');
+    shutdown('uncaughtException').finally(() => process.exit(1));
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    logger.fatal({ reason }, 'Unhandled rejection — shutting down');
+    shutdown('unhandledRejection').finally(() => process.exit(1));
+  });
+
   logger.info({ role: config.processRole }, 'TaskMaster2 ready');
 }
 

@@ -62,9 +62,10 @@ export class ClioAuth {
       token_type: data.token_type,
     };
 
-    // Store tokens in Redis
+    // Store tokens in Redis with TTL (token lifetime + 1 hour buffer for refresh)
     const redis = getRedis();
-    await redis.set(TOKEN_KEY, JSON.stringify(tokens));
+    const ttl = data.expires_in + 3600;
+    await redis.set(TOKEN_KEY, JSON.stringify(tokens), 'EX', ttl);
 
     logger.info('Clio OAuth tokens stored');
     return tokens;
@@ -105,7 +106,8 @@ export class ClioAuth {
     };
 
     const redis = getRedis();
-    await redis.set(TOKEN_KEY, JSON.stringify(tokens));
+    const ttl = data.expires_in + 3600;
+    await redis.set(TOKEN_KEY, JSON.stringify(tokens), 'EX', ttl);
 
     logger.info('Clio OAuth tokens refreshed');
     return tokens.access_token;

@@ -5,8 +5,21 @@ import { NotFoundError } from '../domain/errors.js';
 import { parsePagination, validateId } from '../lib/schema/index.js';
 import { getQueue, QUEUE_NAMES } from '../lib/infra/queue.js';
 import type { CanonicalTaskId } from '../domain/types.js';
+import { ValidationError } from '../domain/errors.js';
 
 const registryService = new RegistryService();
+
+/** Fields allowed in PATCH /tasks/:id (human edit). Matches UpdateTaskInput. */
+const TASK_PATCH_FIELDS = new Set([
+  'canonical_summary',
+  'status',
+  'priority',
+  'due_date_kind',
+  'due_date_window_start',
+  'due_date_window_end',
+  'assignee_user_id',
+  'assignee_role',
+]);
 const registryRepo = new RegistryRepo();
 
 /** Shared handler: get canonical task by ID */
@@ -44,14 +57,21 @@ export async function registryRoutes(app: FastifyInstance): Promise<void> {
     const task = await registryService.findById(request.params.id as CanonicalTaskId);
     if (!task) throw new NotFoundError('CanonicalTask', request.params.id);
 
-    // Mark this as a human edit — protects these fields from future pipeline overwrites
-    const body = {
-      ...request.body,
-      human_edited_at: new Date(),
-      human_edited_by: (request.headers['x-user-id'] as string) ?? 'unknown',
-    };
+    // Filter body to only allowed fields
+    const rawBody = request.body ?? {};
+    const filtered: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(rawBody)) {
+      if (TASK_PATCH_FIELDS.has(key)) filtered[key] = value;
+    }
+    if (Object.keys(filtered).length === 0) {
+      throw new ValidationError(`No valid fields to update. Allowed: ${[...TASK_PATCH_FIELDS].join(', ')}`);
+    }
 
-    const updated = await registryService.updateTask(request.params.id as CanonicalTaskId, body as any);
+    // Mark this as a human edit — protects these fields from future pipeline overwrites
+    filtered.human_edited_at = new Date();
+    filtered.human_edited_by = (request.headers['x-user-id'] as string) ?? 'unknown';
+
+    const updated = await registryService.updateTask(request.params.id as CanonicalTaskId, filtered as import('./registry.types.js').UpdateTaskInput);
     return reply.send(updated);
   });
 

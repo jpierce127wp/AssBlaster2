@@ -37,8 +37,10 @@ services:
       LOG_LEVEL: info
       API_KEY: dev-api-key
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
-      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-voyage}
       EMBEDDING_DIMENSIONS: "1536"
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,10 +56,15 @@ services:
       DATABASE_URL: postgres://taskmaster:taskmaster@postgres:5432/taskmaster
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
-      API_KEY: dev-api-key
+      API_KEY: ${API_KEY:-dev-api-key}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
-      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-voyage}
       EMBEDDING_DIMENSIONS: "1536"
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
     depends_on:
       migrator:
         condition: service_completed_successfully
@@ -71,10 +78,12 @@ services:
       DATABASE_URL: postgres://taskmaster:taskmaster@postgres:5432/taskmaster
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
-      API_KEY: dev-api-key
+      API_KEY: ${API_KEY:-dev-api-key}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-sk-ant-placeholder}
-      EMBEDDING_PROVIDER: voyage
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-voyage}
       EMBEDDING_DIMENSIONS: "1536"
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
     depends_on:
       migrator:
         condition: service_completed_successfully

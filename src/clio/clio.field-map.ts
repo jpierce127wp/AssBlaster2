@@ -1,8 +1,9 @@
 /**
  * Clio Field Mappings
  *
- * Maps internal canonical task fields to Clio API field names.
- * These are placeholders — validate against live Clio API docs before production use.
+ * Maps internal canonical task fields to Clio Manage API v4 field names.
+ * Field names follow Clio v4 conventions (name, description, due_at, assignee.id).
+ * Verify against your Clio sandbox before first production sync.
  */
 
 export const CLIO_FIELD_MAP = {
