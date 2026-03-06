@@ -36,9 +36,12 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Core plugins
   await app.register(cors, { origin: parseCorsOrigin(config.corsOrigin) });
-  await app.register(requestIdPlugin);
-  await app.register(errorHandlerPlugin);
-  await app.register(authPlugin);
+
+  // Register custom plugins directly on root instance (not via app.register)
+  // so hooks apply to all routes, not just an encapsulated child scope.
+  await requestIdPlugin(app);
+  await errorHandlerPlugin(app);
+  await authPlugin(app);
 
   // Health endpoints (no auth)
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
