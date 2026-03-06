@@ -82,9 +82,36 @@ async function main(): Promise<void> {
     dimensions: config.embeddingDimensions,
   });
 
-  // Graceful shutdown
+  // Start based on role
+  let app: Awaited<ReturnType<typeof startServer>> | null = null;
+  let workers: Awaited<ReturnType<typeof startWorkers>> | null = null;
+
+  if (config.processRole === 'api' || config.processRole === 'both') {
+    app = await startServer();
+  }
+
+  if (config.processRole === 'worker' || config.processRole === 'both') {
+    workers = await startWorkers();
+  }
+
+  // Graceful shutdown — drain in-flight work before closing infrastructure
+  let shuttingDown = false;
   const shutdown = async (signal: string) => {
+    if (shuttingDown) return; // Prevent double-shutdown
+    shuttingDown = true;
     logger.info({ signal }, 'Shutting down...');
+
+    // 1. Stop accepting new HTTP requests
+    if (app) {
+      try { await app.close(); } catch (err) { logger.error({ err }, 'Error closing server'); }
+    }
+
+    // 2. Close BullMQ workers (drains in-flight jobs)
+    if (workers) {
+      await Promise.allSettled(workers.map((w) => w.close()));
+    }
+
+    // 3. Close infrastructure
     await closeQueues();
     await closeRedis();
     await closePool();
@@ -93,15 +120,6 @@ async function main(): Promise<void> {
 
   process.on('SIGTERM', () => shutdown('SIGTERM'));
   process.on('SIGINT', () => shutdown('SIGINT'));
-
-  // Start based on role
-  if (config.processRole === 'api' || config.processRole === 'both') {
-    await startServer();
-  }
-
-  if (config.processRole === 'worker' || config.processRole === 'both') {
-    await startWorkers();
-  }
 
   logger.info({ role: config.processRole }, 'TaskMaster2 ready');
 }

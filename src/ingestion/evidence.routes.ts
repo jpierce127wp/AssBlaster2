@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { EvidenceService } from './evidence.service.js';
 import { ingestRequestSchema } from './evidence.types.js';
 import { ValidationError, NotFoundError } from '../domain/errors.js';
+import { parsePagination, validateId } from '../lib/schema/index.js';
 import type { EvidenceEventId } from '../domain/types.js';
 
 const evidenceService = new EvidenceService();
@@ -33,6 +34,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
 
   /** GET /api/v1/evidence/:id — Get evidence event by ID */
   app.get('/evidence/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    validateId(request.params.id, 'EvidenceEventId');
     const event = await evidenceService.findById(request.params.id as EvidenceEventId);
     if (!event) {
       throw new NotFoundError('EvidenceEvent', request.params.id);
@@ -42,9 +44,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
 
   /** GET /api/v1/evidence — List evidence events */
   app.get('/evidence', async (request: FastifyRequest<{ Querystring: { limit?: string; offset?: string } }>, reply: FastifyReply) => {
-    const limit = Math.min(parseInt(request.query.limit || '20', 10), 100);
-    const offset = parseInt(request.query.offset || '0', 10);
-
+    const { limit, offset } = parsePagination(request.query);
     const result = await evidenceService.findAll({ limit, offset });
     return reply.send(result);
   });
@@ -77,6 +77,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
 
   /** GET /api/v1/evidence-events/:id — Alias for GET /evidence/:id */
   app.get('/evidence-events/:id', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    validateId(request.params.id, 'EvidenceEventId');
     const event = await evidenceService.findById(request.params.id as EvidenceEventId);
     if (!event) {
       throw new NotFoundError('EvidenceEvent', request.params.id);

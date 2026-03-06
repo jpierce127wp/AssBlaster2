@@ -1,6 +1,40 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { getPool } from '../lib/infra/db.js';
-import { NotFoundError } from '../domain/errors.js';
+import { NotFoundError, ValidationError } from '../domain/errors.js';
+
+const MATTER_FIELDS = new Set(['display_name', 'client_name', 'practice_area', 'status', 'clio_matter_id', 'aliases']);
+const USER_FIELDS = new Set(['display_name', 'email', 'role', 'department', 'active', 'clio_user_id', 'aliases']);
+
+function buildUpdateQuery(
+  table: string,
+  id: string,
+  fields: Record<string, unknown>,
+  allowedFields: Set<string>,
+): { sql: string; values: unknown[] } {
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (value !== undefined && allowedFields.has(key)) {
+      setClauses.push(`${key} = $${idx}`);
+      values.push(value);
+      idx++;
+    }
+  }
+
+  if (setClauses.length === 0) {
+    throw new ValidationError('No valid fields to update');
+  }
+
+  setClauses.push(`updated_at = NOW()`);
+  values.push(id);
+
+  return {
+    sql: `UPDATE ${table} SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`,
+    values,
+  };
+}
 
 export async function identityRoutes(app: FastifyInstance): Promise<void> {
   const pool = () => getPool();
@@ -35,33 +69,9 @@ export async function identityRoutes(app: FastifyInstance): Promise<void> {
     Params: { id: string };
     Body: { display_name?: string; client_name?: string; practice_area?: string; status?: string; clio_matter_id?: number; aliases?: string[] };
   }>, reply: FastifyReply) => {
-    const { id } = request.params;
-    const fields = request.body;
-    const setClauses: string[] = [];
-    const values: unknown[] = [];
-    let idx = 1;
-
-    for (const [key, value] of Object.entries(fields)) {
-      if (value !== undefined) {
-        setClauses.push(`${key} = $${idx}`);
-        values.push(value);
-        idx++;
-      }
-    }
-
-    if (setClauses.length === 0) {
-      return reply.status(400).send({ error: 'No fields to update' });
-    }
-
-    setClauses.push(`updated_at = NOW()`);
-    values.push(id);
-
-    const result = await pool().query(
-      `UPDATE matter_registry SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`,
-      values,
-    );
-
-    if (result.rows.length === 0) throw new NotFoundError('Matter', id);
+    const { sql, values } = buildUpdateQuery('matter_registry', request.params.id, request.body, MATTER_FIELDS);
+    const result = await pool().query(sql, values);
+    if (result.rows.length === 0) throw new NotFoundError('Matter', request.params.id);
     return reply.send(result.rows[0]);
   });
 
@@ -95,33 +105,9 @@ export async function identityRoutes(app: FastifyInstance): Promise<void> {
     Params: { id: string };
     Body: { display_name?: string; email?: string; role?: string; department?: string; active?: boolean; clio_user_id?: number; aliases?: string[] };
   }>, reply: FastifyReply) => {
-    const { id } = request.params;
-    const fields = request.body;
-    const setClauses: string[] = [];
-    const values: unknown[] = [];
-    let idx = 1;
-
-    for (const [key, value] of Object.entries(fields)) {
-      if (value !== undefined) {
-        setClauses.push(`${key} = $${idx}`);
-        values.push(value);
-        idx++;
-      }
-    }
-
-    if (setClauses.length === 0) {
-      return reply.status(400).send({ error: 'No fields to update' });
-    }
-
-    setClauses.push(`updated_at = NOW()`);
-    values.push(id);
-
-    const result = await pool().query(
-      `UPDATE user_registry SET ${setClauses.join(', ')} WHERE id = $${idx} RETURNING *`,
-      values,
-    );
-
-    if (result.rows.length === 0) throw new NotFoundError('User', id);
+    const { sql, values } = buildUpdateQuery('user_registry', request.params.id, request.body, USER_FIELDS);
+    const result = await pool().query(sql, values);
+    if (result.rows.length === 0) throw new NotFoundError('User', request.params.id);
     return reply.send(result.rows[0]);
   });
 }

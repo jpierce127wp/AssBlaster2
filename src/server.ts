@@ -1,3 +1,4 @@
+import type { FastifyInstance } from 'fastify';
 import { buildApp } from './api/app.js';
 import { loadConfig } from './app/config.js';
 import { getLogger } from './observability/logger.js';
@@ -11,7 +12,7 @@ import { replayRoutes } from './observability/replay.routes.js';
 import { clioRoutes } from './clio/clio.routes.js';
 import { identityRoutes } from './resolution/identity.routes.js';
 
-export async function startServer(): Promise<void> {
+export async function startServer(): Promise<FastifyInstance> {
   const config = loadConfig();
   const logger = getLogger();
   const app = await buildApp();
@@ -29,4 +30,5 @@ export async function startServer(): Promise<void> {
 
   await app.listen({ port: config.port, host: config.host });
   logger.info({ port: config.port, host: config.host }, 'Server started');
+  return app;
 }

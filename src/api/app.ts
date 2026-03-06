@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import { getLogger } from '../observability/logger.js';
 import { loadConfig } from '../app/config.js';
 import { getRedis } from '../lib/infra/redis.js';
+import { getPool } from '../lib/infra/db.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { authPlugin } from './plugins/auth.js';
 import { requestIdPlugin } from './plugins/request-id.js';
@@ -41,9 +42,22 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Health endpoints (no auth)
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
-  app.get('/ready', async () => {
-    // Could add DB/Redis checks here
-    return { status: 'ready', timestamp: new Date().toISOString() };
+  app.get('/ready', async (_request, reply) => {
+    const checks: Record<string, 'ok' | 'error'> = { postgres: 'error', redis: 'error' };
+
+    try {
+      await getPool().query('SELECT 1');
+      checks.postgres = 'ok';
+    } catch { /* leave as error */ }
+
+    try {
+      const pong = await getRedis().ping();
+      if (pong === 'PONG') checks.redis = 'ok';
+    } catch { /* leave as error */ }
+
+    const allOk = Object.values(checks).every((v) => v === 'ok');
+    const status = allOk ? 'ready' : 'degraded';
+    return reply.status(allOk ? 200 : 503).send({ status, checks, timestamp: new Date().toISOString() });
   });
 
   logger.info('Fastify app built');

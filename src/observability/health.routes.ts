@@ -21,11 +21,12 @@ export async function healthRoutes(app: FastifyInstance): Promise<void> {
     }>,
     reply: FastifyReply,
   ) => {
+    const rawLimit = request.query.limit ? parseInt(request.query.limit, 10) : undefined;
     const entries = await queryAuditLog({
       entityType: request.query.entity_type,
       entityId: request.query.entity_id,
       action: request.query.action,
-      limit: request.query.limit ? parseInt(request.query.limit, 10) : undefined,
+      limit: Number.isNaN(rawLimit) ? undefined : rawLimit,
     });
     return reply.send({ entries });
   });

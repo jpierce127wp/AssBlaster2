@@ -23,3 +23,20 @@ export const paginationSchema = z.object({
 });
 
 export type PaginationInput = z.infer<typeof paginationSchema>;
+
+import { ValidationError } from '../../domain/errors.js';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Validate a string looks like a UUID. Returns the string or throws ValidationError. */
+export function validateId(id: string, label: string): string {
+  if (!UUID_RE.test(id)) {
+    throw new ValidationError(`Invalid ${label} format: expected UUID`);
+  }
+  return id;
+}
+
+/** Parse limit/offset query params safely (NaN → default). */
+export function parsePagination(query: { limit?: string; offset?: string }): PaginationInput {
+  return paginationSchema.parse(query);
+}

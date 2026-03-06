@@ -1,3 +1,4 @@
+import type { Worker } from 'bullmq';
 import { getLogger } from './observability/logger.js';
 import { startEvidenceWorker } from './ingestion/evidence.worker.js';
 import { startExtractionWorker } from './extraction/extraction.worker.js';
@@ -7,16 +8,19 @@ import { startDedupWorker } from './dedupe/dedup.worker.js';
 import { startAssignmentWorker } from './assignment/assignment.worker.js';
 import { startSyncWorker } from './sync/sync.worker.js';
 
-export async function startWorkers(): Promise<void> {
+export async function startWorkers(): Promise<Worker[]> {
   const logger = getLogger();
 
-  startEvidenceWorker();
-  startExtractionWorker();
-  startNormalizationWorker();
-  startIdentityWorker();
-  startDedupWorker();
-  startAssignmentWorker();
-  startSyncWorker();
+  const workers = [
+    startEvidenceWorker(),
+    startExtractionWorker(),
+    startNormalizationWorker(),
+    startIdentityWorker(),
+    startDedupWorker(),
+    startAssignmentWorker(),
+    startSyncWorker(),
+  ];
 
   logger.info('Workers bootstrap complete');
+  return workers;
 }
