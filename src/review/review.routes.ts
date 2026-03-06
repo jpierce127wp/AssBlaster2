@@ -1,9 +1,11 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { ReviewService } from './review.service.js';
+import { ContextBuilder } from './context-builder.js';
 import { NotFoundError, ValidationError } from '../domain/errors.js';
 import { z } from 'zod';
 
 const reviewService = new ReviewService();
+const contextBuilder = new ContextBuilder();
 
 const decisionSchema = z.object({
   status: z.enum(['resolved', 'dismissed']),
@@ -25,6 +27,12 @@ export async function reviewRoutes(app: FastifyInstance): Promise<void> {
     const item = await reviewService.findById(request.params.id);
     if (!item) throw new NotFoundError('ReviewItem', request.params.id);
     return reply.send(item);
+  });
+
+  /** GET /api/v1/reviews/:id/context — Get full review context */
+  app.get('/reviews/:id/context', async (request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
+    const context = await contextBuilder.build(request.params.id);
+    return reply.send(context);
   });
 
   /** POST /api/v1/reviews/:id/decide — Submit a review decision */

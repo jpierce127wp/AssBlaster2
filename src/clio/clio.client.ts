@@ -2,13 +2,16 @@ import { loadConfig } from '../app/config.js';
 import { getLogger } from '../observability/logger.js';
 import { ExternalServiceError } from '../domain/errors.js';
 import { ClioAuth } from './clio.auth.js';
+import { RateLimiter } from './rate-limit.js';
 import type { ClioTask, ClioTaskPayload } from './clio.types.js';
 
 export class ClioClient {
   private auth = new ClioAuth();
+  private rateLimiter = new RateLimiter();
 
   private async request<T>(method: string, path: string, body?: unknown, etag?: string): Promise<{ data: T; etag: string }> {
     const config = loadConfig();
+    await this.rateLimiter.acquire();
     const accessToken = await this.auth.getAccessToken();
     const url = `${config.clioApiBase}${path}`;
 

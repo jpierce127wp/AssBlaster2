@@ -4,6 +4,7 @@ import { RegistryRepo } from '../registry/registry.repo.js';
 import { SyncRepo } from './sync.repo.js';
 import { SyncReconciler } from './sync.reconciler.js';
 import { ClioClient } from '../clio/clio.client.js';
+import { ConflictHandler } from '../clio/conflict-handler.js';
 import { mapPriority, mapStatus } from '../clio/clio.field-map.js';
 import type { SyncResult } from './sync.types.js';
 import { PipelineError } from '../domain/errors.js';
@@ -18,6 +19,7 @@ export class SyncService {
   private syncRepo = new SyncRepo();
   private reconciler = new SyncReconciler();
   private clioClient = new ClioClient();
+  private conflictHandler = new ConflictHandler();
   private auditRepo = new AuditRepo();
 
   async syncToClio(canonicalTaskId: CanonicalTaskId): Promise<SyncResult> {
@@ -47,14 +49,13 @@ export class SyncService {
         // Check for conflicts first
         const hasConflict = await this.reconciler.detectConflict(canonicalTaskId);
         if (hasConflict) {
-          await this.auditRepo.log({
-            entityType: 'canonical_task',
-            entityId: canonicalTaskId,
-            action: 'failed',
-            summary: 'Sync conflict: Clio task was modified',
-            metadata: { clio_task_id: link.clio_task_id },
-          });
-          return { canonical_task_id: canonicalTaskId, clio_task_id: link.clio_task_id, action: 'conflict', details: 'Task was modified in Clio' };
+          const resolution = await this.conflictHandler.resolve(canonicalTaskId);
+          if (resolution.action === 'overwritten') {
+            // Conflict resolved by overwriting Clio — treat as updated
+            return { canonical_task_id: canonicalTaskId, clio_task_id: link.clio_task_id, action: 'updated', details: resolution.details };
+          }
+          // Conflict sent to review
+          return { canonical_task_id: canonicalTaskId, clio_task_id: link.clio_task_id, action: 'conflict', details: resolution.details };
         }
 
         // Update existing
