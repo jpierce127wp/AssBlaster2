@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,11 +17,55 @@ import {
 } from '@/components/ui/select';
 import { evidenceApi } from '@/api/endpoints/evidence';
 import type { SourceType, IngestRequest } from '@/api/types';
-import { CheckCircle, XCircle, AlertTriangle, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Plus, Trash2, Upload, FileText, Loader2 } from 'lucide-react';
+import mammoth from 'mammoth';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+
+GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href;
 
 interface Participant {
   name: string;
   role: string;
+}
+
+const ACCEPTED_EXTENSIONS = '.txt,.docx,.pdf';
+
+async function extractText(file: File): Promise<string> {
+  const name = file.name.toLowerCase();
+
+  if (name.endsWith('.txt')) {
+    return file.text();
+  }
+
+  if (name.endsWith('.docx')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  }
+
+  if (name.endsWith('.pdf')) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await getDocument({ data: arrayBuffer }).promise;
+    const pages: string[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const text = content.items
+        .filter((item): item is typeof item & { str: string } => 'str' in item)
+        .map((item) => item.str)
+        .join(' ');
+      pages.push(text);
+    }
+    return pages.join('\n\n');
+  }
+
+  throw new Error(`Unsupported file type: ${file.name}`);
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function IngestPage() {
@@ -32,24 +76,54 @@ export function IngestPage() {
   const [contactHints, setContactHints] = useState('');
   const [privileged, setPrivileged] = useState(false);
   const [sourceTimestamp, setSourceTimestamp] = useState('');
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ingestMutation = useMutation({
     mutationFn: (body: IngestRequest) => evidenceApi.ingest(body),
   });
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  const processFile = useCallback(async (file: File) => {
+    setSelectedFile(file);
+    setRawText('');
+    setExtractionError(null);
+    setExtracting(true);
+    try {
+      const text = await extractText(file);
+      setRawText(text);
+    } catch (err) {
+      setExtractionError(err instanceof Error ? err.message : 'Failed to extract text from file');
+    } finally {
+      setExtracting(false);
+    }
+  }, []);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setRawText(reader.result);
-      }
-    };
-    reader.readAsText(file);
-    // Reset so the same file can be re-selected
+    if (file) processFile(file);
     e.target.value = '';
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOver(false);
   }
 
   function addParticipant() {
@@ -160,34 +234,72 @@ export function IngestPage() {
             </Select>
           </div>
 
-          {/* Transcript Text */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <Label>Transcript Text</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Upload .txt
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".txt,text/plain"
-                className="hidden"
-                onChange={handleFileUpload}
-              />
+          {/* File Upload */}
+          <div className="space-y-2">
+            <Label>Upload Document</Label>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click(); }}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors ${
+                dragOver
+                  ? 'border-primary bg-primary/5'
+                  : 'border-muted-foreground/25 hover:border-primary/50'
+              }`}
+            >
+              <Upload className="h-8 w-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Drag & drop a file here, or click to browse
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Supports .txt, .docx, and .pdf
+              </p>
             </div>
-            <Textarea
-              value={rawText}
-              onChange={(e) => setRawText(e.target.value)}
-              placeholder="Paste transcript text here..."
-              rows={20}
-              className="font-mono text-sm"
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_EXTENSIONS}
+              className="hidden"
+              onChange={handleFileChange}
             />
           </div>
+
+          {/* File info */}
+          {selectedFile && (
+            <div className="flex items-center gap-3 rounded-md border px-4 py-3 text-sm">
+              <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium">{selectedFile.name}</p>
+                <p className="text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p>
+              </div>
+              {extracting && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+            </div>
+          )}
+
+          {/* Extraction error */}
+          {extractionError && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertDescription>{extractionError}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Text preview */}
+          {rawText && !extracting && (
+            <div className="space-y-1">
+              <Label>Extracted Text Preview</Label>
+              <Textarea
+                value={rawText}
+                readOnly
+                rows={10}
+                className="font-mono text-sm"
+              />
+            </div>
+          )}
 
           {/* Participants */}
           <div className="space-y-2">
@@ -267,7 +379,7 @@ export function IngestPage() {
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={!rawText.trim() || ingestMutation.isPending}
+            disabled={!rawText.trim() || extracting || ingestMutation.isPending}
           >
             {ingestMutation.isPending ? 'Submitting...' : 'Submit Transcript'}
           </Button>
