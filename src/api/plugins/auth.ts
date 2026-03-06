@@ -7,7 +7,9 @@ export async function authPlugin(app: FastifyInstance): Promise<void> {
     // Skip auth for health checks, OAuth callbacks, and API docs
     if (request.url === '/health' || request.url === '/ready'
       || request.url.startsWith('/docs')
-      || request.url.startsWith('/api/v1/clio/callback')) {
+      || request.url.startsWith('/api/v1/clio/callback')
+      || request.url.startsWith('/api/v1/clio/authorize')
+      || request.url.startsWith('/api/v1/clio/status')) {
       return;
     }
 
