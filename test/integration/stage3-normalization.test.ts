@@ -128,7 +128,7 @@ describe('Stage 3: Normalization', () => {
     // Postgres DATE comes back as a Date object or ISO string
     const dueStart = ct!.due_date_window_start;
     expect(dueStart).toBeTruthy();
-    expect(String(dueStart)).toContain('2026-03-13');
+    expect(new Date(dueStart as string).toISOString()).toContain('2026-03-13');
   });
 
   it('advances evidence state to "normalized"', async () => {

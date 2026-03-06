@@ -13,6 +13,7 @@ import { DEDUP_THRESHOLDS, type DedupDecision } from './dedup.types.js';
 import { PipelineError } from '../domain/errors.js';
 import { TERMINAL_STATUSES, SENSITIVE_FIELDS, SENSITIVE_FIELD_MIN_CONFIDENCE } from '../domain/policy.js';
 import { withMatterLock } from '../registry/locking.js';
+import { getEmbeddingProvider } from '../lib/infra/embedding.js';
 import type { CandidateTaskRow } from '../normalization/normalization.types.js';
 import type { CanonicalTaskId, CandidateTaskId, EvidenceEventId, SourceAuthority } from '../domain/types.js';
 
@@ -377,6 +378,9 @@ export class DedupService {
       candidateTask.due_date_window_start,
     );
 
+    const textToEmbed = [candidateTask.canonical_summary, candidateTask.target_object].filter(Boolean).join(' — ');
+    const [embedding] = await getEmbeddingProvider().embed([textToEmbed]);
+
     const newTask = await this.registry.createTask({
       canonicalSummary: candidateTask.canonical_summary,
       actionType: candidateTask.action_type,
@@ -390,8 +394,8 @@ export class DedupService {
       dueDateWindowEnd: candidateTask.due_date_window_end,
       matterId: candidateTask.matter_id,
       fingerprint,
-      summaryEmbedding: [], // Will be computed if needed
-    }, evidenceEventId, candidateTask.action_span_id as string | null);
+      summaryEmbedding: embedding!,
+    }, evidenceEventId, candidateTask.action_span_id as string | null, { skipLock: true });
 
     await this.mergeDecisionRepo.insert({
       candidateTaskId,

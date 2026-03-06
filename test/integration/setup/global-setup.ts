@@ -5,12 +5,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
 import pg from 'pg';
 
 const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function setup() {
+  // Load .env since globalSetup runs in its own context
+  dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
+
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     throw new Error(
