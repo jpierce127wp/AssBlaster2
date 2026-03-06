@@ -19,6 +19,9 @@ const configSchema = z.object({
   clioApiBase: z.string().default('https://app.clio.com/api/v4'),
   apiKey: z.string().min(1),
   defaultTenantId: z.string().default('default'),
+  corsOrigin: z.string().default('*'),
+  rateLimitMax: z.coerce.number().default(100),
+  rateLimitWindowMs: z.coerce.number().default(60_000),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -47,6 +50,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     clioApiBase: env.CLIO_API_BASE,
     apiKey: env.API_KEY,
     defaultTenantId: env.DEFAULT_TENANT_ID,
+    corsOrigin: env.CORS_ORIGIN,
+    rateLimitMax: env.RATE_LIMIT_MAX,
+    rateLimitWindowMs: env.RATE_LIMIT_WINDOW_MS,
   });
 
   return _config;
