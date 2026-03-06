@@ -116,12 +116,21 @@ async function seed(databaseUrl: string): Promise<void> {
     ];
 
     for (const r of rules) {
-      await pool.query(
-        `INSERT INTO routing_rules (practice_area, action_type, assignee_user_id, assignee_role, priority)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT DO NOTHING`,
-        [r.practice_area, r.action_type, null, r.assignee_role, r.priority],
+      // Use a two-step upsert: try to reactivate an existing rule first, then insert if none exists
+      const existing = await pool.query(
+        `UPDATE routing_rules SET active = true, updated_at = NOW()
+         WHERE practice_area = $1 AND action_type = $2 AND priority = $3
+         RETURNING id`,
+        [r.practice_area, r.action_type, r.priority],
       );
+      if (existing.rowCount === 0) {
+        await pool.query(
+          `INSERT INTO routing_rules (practice_area, action_type, assignee_user_id, assignee_role, priority)
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT DO NOTHING`,
+          [r.practice_area, r.action_type, null, r.assignee_role, r.priority],
+        );
+      }
       console.log(`  ✓ Rule: ${r.practice_area}/${r.action_type} → ${r.assignee_role}`);
     }
 

@@ -15,7 +15,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
       throw new ValidationError('Invalid ingest request', parsed.error.flatten());
     }
 
-    const result = await evidenceService.ingest(parsed.data);
+    const result = await evidenceService.ingest(parsed.data, request.correlationId);
 
     if (!result.isNew) {
       return reply.status(200).send({
@@ -58,7 +58,7 @@ export async function evidenceRoutes(app: FastifyInstance): Promise<void> {
       throw new ValidationError('Invalid ingest request', parsed.error.flatten());
     }
 
-    const result = await evidenceService.ingest(parsed.data);
+    const result = await evidenceService.ingest(parsed.data, request.correlationId);
 
     if (!result.isNew) {
       return reply.status(200).send({

@@ -11,16 +11,16 @@ const evidenceRepo = new EvidenceRepo();
 
 async function processIngest(job: Job<JobDataMap['evidence.ingest']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId } = job.data;
+  const { evidenceEventId, correlationId } = job.data;
 
   // Idempotency guard: skip if already past ingest stage
   const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
   if (currentState && currentState !== 'received') {
-    logger.info({ evidenceEventId, currentState }, 'Evidence already past ingest stage, skipping');
+    logger.info({ evidenceEventId, correlationId, currentState }, 'Evidence already past ingest stage, skipping');
     return;
   }
 
-  logger.info({ evidenceEventId, jobId: job.id }, 'Processing evidence ingest');
+  logger.info({ evidenceEventId, correlationId, jobId: job.id }, 'Processing evidence ingest');
 
   // Step 1: Clean the evidence (skip if already cleaned on retry)
   const event = await evidenceRepo.findById(evidenceEventId as EvidenceEventId);
@@ -36,6 +36,7 @@ async function processIngest(job: Job<JobDataMap['evidence.ingest']>): Promise<v
     eventType: 'evidence.received',
     schemaVersion: 1,
     evidenceEventId,
+    correlationId,
   }, {
     jobId: `extract-${evidenceEventId}`,
   });

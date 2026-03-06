@@ -9,9 +9,9 @@ const assignmentService = new AssignmentService();
 
 async function processAssignment(job: Job<JobDataMap['assignment.assign']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId, canonicalTaskId } = job.data;
+  const { evidenceEventId, canonicalTaskId, correlationId } = job.data;
 
-  logger.info({ canonicalTaskId, evidenceEventId, jobId: job.id }, 'Processing assignment');
+  logger.info({ canonicalTaskId, evidenceEventId, correlationId, jobId: job.id }, 'Processing assignment');
 
   const result = await assignmentService.assign(canonicalTaskId as CanonicalTaskId);
 
@@ -21,6 +21,7 @@ async function processAssignment(job: Job<JobDataMap['assignment.assign']>): Pro
     eventType: 'canonical_task.changed',
     schemaVersion: 1,
     canonicalTaskId,
+    correlationId,
   }, {
     jobId: `sync-${canonicalTaskId}`,
   });

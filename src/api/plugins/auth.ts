@@ -4,8 +4,9 @@ import { loadConfig } from '../../app/config.js';
 
 export async function authPlugin(app: FastifyInstance): Promise<void> {
   app.addHook('onRequest', async (request: FastifyRequest, _reply: FastifyReply) => {
-    // Skip auth for health checks and OAuth callbacks
+    // Skip auth for health checks, OAuth callbacks, and API docs
     if (request.url === '/health' || request.url === '/ready'
+      || request.url.startsWith('/docs')
       || request.url.startsWith('/api/v1/clio/callback')) {
       return;
     }

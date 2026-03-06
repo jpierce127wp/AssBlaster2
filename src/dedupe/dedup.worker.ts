@@ -9,7 +9,7 @@ const dedupService = new DedupService();
 
 async function processDedupCheck(job: Job<JobDataMap['dedup.check']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId, candidateTaskId } = job.data;
+  const { evidenceEventId, candidateTaskId, correlationId } = job.data;
 
   if (!candidateTaskId) {
     logger.warn({ jobId: job.id }, 'No candidateTaskId in dedup job data');
@@ -41,6 +41,7 @@ async function processDedupCheck(job: Job<JobDataMap['dedup.check']>): Promise<v
       schemaVersion: 1,
       evidenceEventId,
       canonicalTaskId,
+      correlationId,
     }, {
       jobId: `assign-${canonicalTaskId}-${evidenceEventId}`,
     });

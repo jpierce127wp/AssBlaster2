@@ -9,9 +9,9 @@ const syncService = new SyncService();
 
 async function processSyncPush(job: Job<JobDataMap['sync.push']>): Promise<void> {
   const logger = getLogger();
-  const { canonicalTaskId } = job.data;
+  const { canonicalTaskId, correlationId } = job.data;
 
-  logger.info({ canonicalTaskId, jobId: job.id }, 'Processing sync push');
+  logger.info({ canonicalTaskId, correlationId, jobId: job.id }, 'Processing sync push');
 
   const result = await syncService.syncToClio(canonicalTaskId as CanonicalTaskId);
 

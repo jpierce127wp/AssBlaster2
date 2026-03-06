@@ -11,16 +11,16 @@ const evidenceRepo = new EvidenceRepo();
 
 async function processNormalization(job: Job<JobDataMap['normalization.normalize']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId, actionSpanIds } = job.data;
+  const { evidenceEventId, actionSpanIds, correlationId } = job.data;
 
   // Idempotency guard: skip if already past normalization stage
   const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
   if (currentState && currentState !== 'extracted') {
-    logger.info({ evidenceEventId, currentState }, 'Evidence already past normalization stage, skipping');
+    logger.info({ evidenceEventId, correlationId, currentState }, 'Evidence already past normalization stage, skipping');
     return;
   }
 
-  logger.info({ evidenceEventId, jobId: job.id, spanCount: actionSpanIds.length }, 'Processing normalization');
+  logger.info({ evidenceEventId, correlationId, jobId: job.id, spanCount: actionSpanIds.length }, 'Processing normalization');
 
   const result = await normalizationService.normalize(
     evidenceEventId as EvidenceEventId,
@@ -39,6 +39,7 @@ async function processNormalization(job: Job<JobDataMap['normalization.normalize
     schemaVersion: 1,
     evidenceEventId,
     candidateTaskIds: result.candidateTaskIds,
+    correlationId,
   }, {
     jobId: `resolve-${evidenceEventId}`,
   });

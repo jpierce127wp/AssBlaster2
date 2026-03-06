@@ -2,10 +2,13 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { getLogger } from '../observability/logger.js';
 import { loadConfig } from '../app/config.js';
 import { getRedis } from '../lib/infra/redis.js';
 import { getPool } from '../lib/infra/db.js';
+import { getEmbeddingProvider } from '../lib/infra/embedding.js';
 import { errorHandlerPlugin } from './plugins/error-handler.js';
 import { authPlugin } from './plugins/auth.js';
 import { requestIdPlugin } from './plugins/request-id.js';
@@ -25,6 +28,28 @@ export async function buildApp(): Promise<FastifyInstance> {
     trustProxy: true,
     bodyLimit: 1_048_576, // 1 MiB
   });
+
+  // OpenAPI docs
+  await app.register(swagger, {
+    openapi: {
+      info: {
+        title: 'TaskMaster2 API',
+        description: 'Legal task extraction pipeline — evidence ingestion, processing, and Clio sync',
+        version: '1.0.0',
+      },
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'X-API-Key',
+            in: 'header',
+          },
+        },
+      },
+      security: [{ apiKey: [] }],
+    },
+  });
+  await app.register(swaggerUi, { routePrefix: '/docs' });
 
   // Security plugins
   await app.register(helmet, { contentSecurityPolicy: false });
@@ -46,7 +71,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Health endpoints (no auth)
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
   app.get('/ready', async (_request, reply) => {
-    const checks: Record<string, 'ok' | 'error'> = { postgres: 'error', redis: 'error' };
+    const checks: Record<string, 'ok' | 'error'> = { postgres: 'error', redis: 'error', embedding: 'error' };
 
     try {
       await getPool().query('SELECT 1');
@@ -56,6 +81,12 @@ export async function buildApp(): Promise<FastifyInstance> {
     try {
       const pong = await getRedis().ping();
       if (pong === 'PONG') checks.redis = 'ok';
+    } catch { /* leave as error */ }
+
+    try {
+      const provider = getEmbeddingProvider();
+      await provider.embed(['health check']);
+      checks.embedding = 'ok';
     } catch { /* leave as error */ }
 
     const allOk = Object.values(checks).every((v) => v === 'ok');

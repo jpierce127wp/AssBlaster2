@@ -8,6 +8,8 @@
 export interface PipelineEvent {
   eventType: string;
   schemaVersion: number;
+  /** Originating HTTP request ID for end-to-end tracing */
+  correlationId?: string;
 }
 
 /** Stage 1: Evidence received and ready for cleaning */

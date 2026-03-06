@@ -11,16 +11,16 @@ const evidenceRepo = new EvidenceRepo();
 
 async function processExtraction(job: Job<JobDataMap['extraction.extract']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId } = job.data;
+  const { evidenceEventId, correlationId } = job.data;
 
   // Idempotency guard: skip if already past extraction stage
   const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
   if (currentState && currentState !== 'received') {
-    logger.info({ evidenceEventId, currentState }, 'Evidence already past extraction stage, skipping');
+    logger.info({ evidenceEventId, correlationId, currentState }, 'Evidence already past extraction stage, skipping');
     return;
   }
 
-  logger.info({ evidenceEventId, jobId: job.id }, 'Processing extraction');
+  logger.info({ evidenceEventId, correlationId, jobId: job.id }, 'Processing extraction');
 
   const result = await extractionService.extract(evidenceEventId as EvidenceEventId);
 
@@ -37,6 +37,7 @@ async function processExtraction(job: Job<JobDataMap['extraction.extract']>): Pr
     schemaVersion: 1,
     evidenceEventId,
     actionSpanIds: result.actionSpanIds,
+    correlationId,
   }, {
     jobId: `normalize-${evidenceEventId}`,
   });

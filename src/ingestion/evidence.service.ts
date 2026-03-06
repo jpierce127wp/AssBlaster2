@@ -19,7 +19,7 @@ export class EvidenceService {
     meeting: new MeetingTranscriptAdapter(),
   };
 
-  async ingest(request: IngestRequest): Promise<{ id: EvidenceEventId; isNew: boolean }> {
+  async ingest(request: IngestRequest, correlationId?: string): Promise<{ id: EvidenceEventId; isNew: boolean }> {
     const logger = getLogger();
 
     const { id, isNew } = await this.repo.insert(request);
@@ -44,6 +44,7 @@ export class EvidenceService {
       eventType: 'evidence.received',
       schemaVersion: 1,
       evidenceEventId: id,
+      correlationId,
     }, {
       jobId: `ingest-${id}`,
     });

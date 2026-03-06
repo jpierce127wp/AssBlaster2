@@ -11,16 +11,16 @@ const evidenceRepo = new EvidenceRepo();
 
 async function processIdentityResolve(job: Job<JobDataMap['identity.resolve']>): Promise<void> {
   const logger = getLogger();
-  const { evidenceEventId, candidateTaskIds } = job.data;
+  const { evidenceEventId, candidateTaskIds, correlationId } = job.data;
 
   // Idempotency guard: skip if already past resolution stage
   const currentState = await evidenceRepo.getState(evidenceEventId as EvidenceEventId);
   if (currentState && currentState !== 'normalized') {
-    logger.info({ evidenceEventId, currentState }, 'Evidence already past resolution stage, skipping');
+    logger.info({ evidenceEventId, correlationId, currentState }, 'Evidence already past resolution stage, skipping');
     return;
   }
 
-  logger.info({ evidenceEventId, jobId: job.id, taskCount: candidateTaskIds.length }, 'Processing identity resolution');
+  logger.info({ evidenceEventId, correlationId, jobId: job.id, taskCount: candidateTaskIds.length }, 'Processing identity resolution');
 
   const result = await identityService.resolve(
     evidenceEventId as EvidenceEventId,
@@ -36,6 +36,7 @@ async function processIdentityResolve(job: Job<JobDataMap['identity.resolve']>):
       schemaVersion: 1,
       evidenceEventId,
       candidateTaskId,
+      correlationId,
     }, {
       jobId: `dedup-${evidenceEventId}-${i}`,
     });

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import type { Logger } from 'pino';
 import { loadConfig } from './app/config.js';
 import { createLogger } from './observability/logger.js';
 import { createPool, closePool } from './lib/infra/db.js';
@@ -8,8 +9,7 @@ import { createEmbeddingProvider } from './lib/infra/embedding.js';
 import { startServer } from './server.js';
 import { startWorkers } from './workers.js';
 
-async function runMigrations(databaseUrl: string): Promise<void> {
-  // Dynamic import of migrate script
+async function runMigrations(databaseUrl: string, logger: Logger): Promise<void> {
   const { default: fs } = await import('node:fs');
   const { default: path } = await import('node:path');
   const { default: pg } = await import('pg');
@@ -46,7 +46,7 @@ async function runMigrations(databaseUrl: string): Promise<void> {
         await pool.query(sql);
         await pool.query('INSERT INTO _migrations (name) VALUES ($1)', [file]);
         await pool.query('COMMIT');
-        console.log(`  applied: ${file}`);
+        logger.info({ migration: file }, 'Migration applied');
       } catch (err) {
         await pool.query('ROLLBACK');
         throw new Error(`Migration ${file} failed: ${err}`);
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
   // Migrator role: run migrations and exit
   if (config.processRole === 'migrator') {
     logger.info('Running migrations...');
-    await runMigrations(config.databaseUrl);
+    await runMigrations(config.databaseUrl, logger);
     logger.info('Migrations complete, exiting');
     process.exit(0);
   }
